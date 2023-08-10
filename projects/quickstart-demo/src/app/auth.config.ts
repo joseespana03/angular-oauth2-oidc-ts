@@ -1,11 +1,11 @@
-import { AuthConfig } from 'angular-oauth2-oidc';
+import { AuthConfig } from "angular-oauth2-oidc";
 
 export const authCodeFlowConfig: AuthConfig = {
-  issuer: 'https://idsvr4.azurewebsites.net',
-  redirectUri: window.location.origin + '/index.html',
-  clientId: 'spa',
-  responseType: 'code',
-  scope: 'openid profile email offline_access api',
+  issuer: "https://idsvr4.azurewebsites.net",
+  redirectUri: window.location.origin + "/index.html",
+  clientId: "spa",
+  responseType: "code",
+  scope: "openid profile email offline_access api",
   showDebugInformation: true,
-  timeoutFactor: 0.01
+  timeoutFactor: 0.01,
 };

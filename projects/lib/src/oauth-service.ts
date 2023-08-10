@@ -1,10 +1,10 @@
-import { Inject, Injectable, NgZone, OnDestroy, Optional } from '@angular/core';
+import { Inject, Injectable, NgZone, OnDestroy, Optional } from "@angular/core";
 import {
   HttpClient,
   HttpErrorResponse,
   HttpHeaders,
-  HttpParams
-} from '@angular/common/http';
+  HttpParams,
+} from "@angular/common/http";
 import {
   combineLatest,
   from,
@@ -13,8 +13,8 @@ import {
   race,
   Subject,
   Subscription,
-  throwError
-} from 'rxjs';
+  throwError,
+} from "rxjs";
 import {
   catchError,
   debounceTime,
@@ -23,21 +23,21 @@ import {
   first,
   map,
   switchMap,
-  tap
-} from 'rxjs/operators';
-import { DOCUMENT } from '@angular/common';
+  tap,
+} from "rxjs/operators";
+import { DOCUMENT } from "@angular/common";
 
 import {
   ValidationHandler,
-  ValidationParams
-} from './token-validation/validation-handler';
-import { UrlHelperService } from './url-helper.service';
+  ValidationParams,
+} from "./token-validation/validation-handler";
+import { UrlHelperService } from "./url-helper.service";
 import {
   OAuthErrorEvent,
   OAuthEvent,
   OAuthInfoEvent,
-  OAuthSuccessEvent
-} from './events';
+  OAuthSuccessEvent,
+} from "./events";
 import {
   LoginOptions,
   OAuthLogger,
@@ -45,12 +45,12 @@ import {
   OidcDiscoveryDoc,
   ParsedIdToken,
   TokenResponse,
-  UserInfo
-} from './types';
-import { b64DecodeUnicode, base64UrlEncode } from './base64-helper';
-import { AuthConfig } from './auth.config';
-import { WebHttpUrlEncodingCodec } from './encoder';
-import { HashHandler } from './token-validation/hash-handler';
+  UserInfo,
+} from "./types";
+import { b64DecodeUnicode, base64UrlEncode } from "./base64-helper";
+import { AuthConfig } from "./auth.config";
+import { WebHttpUrlEncodingCodec } from "./encoder";
+import { HashHandler } from "./token-validation/hash-handler";
 
 /**
  * Service for logging in and logging out with
@@ -90,12 +90,11 @@ export class OAuthService extends AuthConfig implements OnDestroy {
    * The received (passed around) state, when logging
    * in with implicit flow.
    */
-  public state? = '';
+  public state? = "";
 
   protected eventsSubject: Subject<OAuthEvent> = new Subject<OAuthEvent>();
-  protected discoveryDocumentLoadedSubject: Subject<
-    OidcDiscoveryDoc
-  > = new Subject<OidcDiscoveryDoc>();
+  protected discoveryDocumentLoadedSubject: Subject<OidcDiscoveryDoc> =
+    new Subject<OidcDiscoveryDoc>();
   protected silentRefreshPostMessageEventListener!: EventListener;
   protected grantTypesSupported: Array<string> = [];
   protected _storage?: OAuthStorage;
@@ -124,12 +123,13 @@ export class OAuthService extends AuthConfig implements OnDestroy {
   ) {
     super();
 
-    this.debug('angular-oauth2-oidc v8-beta');
+    this.debug("angular-oauth2-oidc v8-beta");
 
     // See https://github.com/manfredsteyer/angular-oauth2-oidc/issues/773 for why this is needed
     this.document = document;
 
-    this.discoveryDocumentLoaded$ = this.discoveryDocumentLoadedSubject.asObservable();
+    this.discoveryDocumentLoaded$ =
+      this.discoveryDocumentLoadedSubject.asObservable();
     this.events = this.eventsSubject.asObservable();
 
     if (tokenValidationHandler) {
@@ -143,24 +143,24 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     try {
       if (storage) {
         this.setStorage(storage);
-      } else if (typeof sessionStorage !== 'undefined') {
+      } else if (typeof sessionStorage !== "undefined") {
         this.setStorage(sessionStorage);
       }
     } catch (e) {
       console.error(
-        'No OAuthStorage provided and cannot access default (sessionStorage).' +
-          'Consider providing a custom OAuthStorage implementation in your module.',
+        "No OAuthStorage provided and cannot access default (sessionStorage)." +
+          "Consider providing a custom OAuthStorage implementation in your module.",
         e
       );
     }
 
     // in IE, sessionStorage does not always survive a redirect
     if (
-      typeof window !== 'undefined' &&
-      typeof window['localStorage'] !== 'undefined'
+      typeof window !== "undefined" &&
+      typeof window["localStorage"] !== "undefined"
     ) {
       const ua = window?.navigator?.userAgent;
-      const msie = ua?.includes('MSIE ') || ua?.includes('Trident');
+      const msie = ua?.includes("MSIE ") || ua?.includes("Trident");
 
       if (msie) {
         this.saveNoncesInLocalStorage = true;
@@ -205,9 +205,11 @@ export class OAuthService extends AuthConfig implements OnDestroy {
   }
 
   protected setupSessionCheck(): void {
-    this.events.pipe(filter(e => e.type === 'token_received')).subscribe(e => {
-      this.initSessionCheck();
-    });
+    this.events
+      .pipe(filter((e) => e.type === "token_received"))
+      .subscribe((e) => {
+        this.initSessionCheck();
+      });
   }
 
   /**
@@ -220,31 +222,31 @@ export class OAuthService extends AuthConfig implements OnDestroy {
    */
   public setupAutomaticSilentRefresh(
     params: object = {},
-    listenTo?: 'access_token' | 'id_token' | 'any',
+    listenTo?: "access_token" | "id_token" | "any",
     noPrompt = true
   ): void {
     let shouldRunSilentRefresh = true;
     this.events
       .pipe(
-        tap(e => {
-          if (e.type === 'token_received') {
+        tap((e) => {
+          if (e.type === "token_received") {
             shouldRunSilentRefresh = true;
-          } else if (e.type === 'logout') {
+          } else if (e.type === "logout") {
             shouldRunSilentRefresh = false;
           }
         }),
-        filter(e => e.type === 'token_expires'),
+        filter((e) => e.type === "token_expires"),
         debounceTime(1000)
       )
-      .subscribe(e => {
+      .subscribe((e) => {
         const event = e as OAuthInfoEvent;
         if (
-          (listenTo == null || listenTo === 'any' || event.info === listenTo) &&
+          (listenTo == null || listenTo === "any" || event.info === listenTo) &&
           shouldRunSilentRefresh
         ) {
           // this.silentRefresh(params, noPrompt).catch(_ => {
-          this.refreshInternal(params, noPrompt).catch(_ => {
-            this.debug('Automatic silent refresh did not work');
+          this.refreshInternal(params, noPrompt).catch((_) => {
+            this.debug("Automatic silent refresh did not work");
           });
         }
       });
@@ -256,7 +258,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     params,
     noPrompt
   ): Promise<TokenResponse | OAuthEvent> {
-    if (!this.useSilentRefresh && this.responseType === 'code') {
+    if (!this.useSilentRefresh && this.responseType === "code") {
       return this.refreshToken();
     } else {
       return this.silentRefresh(params, noPrompt);
@@ -273,7 +275,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
   public loadDiscoveryDocumentAndTryLogin(
     options: LoginOptions = null
   ): Promise<boolean> {
-    return this.loadDiscoveryDocument().then(doc => {
+    return this.loadDiscoveryDocument().then((doc) => {
       return this.tryLogin(options);
     });
   }
@@ -289,9 +291,9 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     options: LoginOptions & { state?: string } = null
   ): Promise<boolean> {
     options = options || {};
-    return this.loadDiscoveryDocumentAndTryLogin(options).then(_ => {
+    return this.loadDiscoveryDocumentAndTryLogin(options).then((_) => {
       if (!this.hasValidIdToken() || !this.hasValidAccessToken()) {
-        const state = typeof options.state === 'string' ? options.state : '';
+        const state = typeof options.state === "string" ? options.state : "";
         this.initLoginFlow(state);
         return false;
       } else {
@@ -313,14 +315,14 @@ export class OAuthService extends AuthConfig implements OnDestroy {
 
     if (!httpsCheck) {
       errors.push(
-        'https for all urls required. Also for urls received by discovery.'
+        "https for all urls required. Also for urls received by discovery."
       );
     }
 
     if (!issuerCheck) {
       errors.push(
-        'Every url in discovery document has to start with the issuer url.' +
-          'Also see property strictDiscoveryDocumentValidation.'
+        "Every url in discovery document has to start with the issuer url." +
+          "Also see property strictDiscoveryDocumentValidation."
       );
     }
 
@@ -341,12 +343,12 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     if (
       (lcUrl.match(/^http:\/\/localhost($|[:\/])/) ||
         lcUrl.match(/^http:\/\/localhost($|[:\/])/)) &&
-      this.requireHttps === 'remoteOnly'
+      this.requireHttps === "remoteOnly"
     ) {
       return true;
     }
 
-    return lcUrl.startsWith('https://');
+    return lcUrl.startsWith("https://");
   }
 
   protected assertUrlNotNullAndCorrectProtocol(
@@ -374,8 +376,8 @@ export class OAuthService extends AuthConfig implements OnDestroy {
   }
 
   protected setupRefreshTimer(): void {
-    if (typeof window === 'undefined') {
-      this.debug('timer not supported on this plattform');
+    if (typeof window === "undefined") {
+      this.debug("timer not supported on this plattform");
       return;
     }
 
@@ -389,8 +391,8 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       this.tokenReceivedSubscription.unsubscribe();
 
     this.tokenReceivedSubscription = this.events
-      .pipe(filter(e => e.type === 'token_received'))
-      .subscribe(_ => {
+      .pipe(filter((e) => e.type === "token_received"))
+      .subscribe((_) => {
         this.clearAccessTokenTimer();
         this.clearIdTokenTimer();
         this.setupExpirationTimers();
@@ -414,10 +416,10 @@ export class OAuthService extends AuthConfig implements OnDestroy {
 
     this.ngZone.runOutsideAngular(() => {
       this.accessTokenTimeoutSubscription = of(
-        new OAuthInfoEvent('token_expires', 'access_token')
+        new OAuthInfoEvent("token_expires", "access_token")
       )
         .pipe(delay(timeout))
-        .subscribe(e => {
+        .subscribe((e) => {
           this.ngZone.run(() => {
             this.eventsSubject.next(e);
           });
@@ -432,10 +434,10 @@ export class OAuthService extends AuthConfig implements OnDestroy {
 
     this.ngZone.runOutsideAngular(() => {
       this.idTokenTimeoutSubscription = of(
-        new OAuthInfoEvent('token_expires', 'id_token')
+        new OAuthInfoEvent("token_expires", "id_token")
       )
         .pipe(delay(timeout))
-        .subscribe(e => {
+        .subscribe((e) => {
           this.ngZone.run(() => {
             this.eventsSubject.next(e);
           });
@@ -502,11 +504,11 @@ export class OAuthService extends AuthConfig implements OnDestroy {
   ): Promise<OAuthSuccessEvent> {
     return new Promise((resolve, reject) => {
       if (!fullUrl) {
-        fullUrl = this.issuer || '';
-        if (!fullUrl.endsWith('/')) {
-          fullUrl += '/';
+        fullUrl = this.issuer || "";
+        if (!fullUrl.endsWith("/")) {
+          fullUrl += "/";
         }
-        fullUrl += '.well-known/openid-configuration';
+        fullUrl += ".well-known/openid-configuration";
       }
 
       if (!this.validateUrlForHttps(fullUrl)) {
@@ -517,12 +519,12 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       }
 
       this.http.get<OidcDiscoveryDoc>(fullUrl).subscribe(
-        doc => {
+        (doc) => {
           if (!this.validateDiscoveryDocument(doc)) {
             this.eventsSubject.next(
-              new OAuthErrorEvent('discovery_document_validation_error', null)
+              new OAuthErrorEvent("discovery_document_validation_error", null)
             );
-            reject('discovery_document_validation_error');
+            reject("discovery_document_validation_error");
             return;
           }
 
@@ -548,32 +550,32 @@ export class OAuthService extends AuthConfig implements OnDestroy {
           }
 
           this.loadJwks()
-            .then(jwks => {
+            .then((jwks) => {
               const result: object = {
                 discoveryDocument: doc,
-                jwks: jwks
+                jwks: jwks,
               };
 
               const event = new OAuthSuccessEvent(
-                'discovery_document_loaded',
+                "discovery_document_loaded",
                 result
               );
               this.eventsSubject.next(event);
               resolve(event);
               return;
             })
-            .catch(err => {
+            .catch((err) => {
               this.eventsSubject.next(
-                new OAuthErrorEvent('discovery_document_load_error', err)
+                new OAuthErrorEvent("discovery_document_load_error", err)
               );
               reject(err);
               return;
             });
         },
-        err => {
-          this.logger.error('error loading discovery document', err);
+        (err) => {
+          this.logger.error("error loading discovery document", err);
           this.eventsSubject.next(
-            new OAuthErrorEvent('discovery_document_load_error', err)
+            new OAuthErrorEvent("discovery_document_load_error", err)
           );
           reject(err);
         }
@@ -585,17 +587,17 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     return new Promise<object>((resolve, reject) => {
       if (this.jwksUri) {
         this.http.get(this.jwksUri).subscribe(
-          jwks => {
+          (jwks) => {
             this.jwks = jwks;
             this.eventsSubject.next(
-              new OAuthSuccessEvent('discovery_document_loaded')
+              new OAuthSuccessEvent("discovery_document_loaded")
             );
             resolve(jwks);
           },
-          err => {
-            this.logger.error('error loading jwks', err);
+          (err) => {
+            this.logger.error("error loading jwks", err);
             this.eventsSubject.next(
-              new OAuthErrorEvent('jwks_load_error', err)
+              new OAuthErrorEvent("jwks_load_error", err)
             );
             reject(err);
           }
@@ -611,9 +613,9 @@ export class OAuthService extends AuthConfig implements OnDestroy {
 
     if (!this.skipIssuerCheck && doc.issuer !== this.issuer) {
       this.logger.error(
-        'invalid issuer in discovery document',
-        'expected: ' + this.issuer,
-        'current: ' + doc.issuer
+        "invalid issuer in discovery document",
+        "expected: " + this.issuer,
+        "current: " + doc.issuer
       );
       return false;
     }
@@ -621,7 +623,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     errors = this.validateUrlFromDiscoveryDocument(doc.authorization_endpoint);
     if (errors.length > 0) {
       this.logger.error(
-        'error validating authorization_endpoint in discovery document',
+        "error validating authorization_endpoint in discovery document",
         errors
       );
       return false;
@@ -630,7 +632,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     errors = this.validateUrlFromDiscoveryDocument(doc.end_session_endpoint);
     if (errors.length > 0) {
       this.logger.error(
-        'error validating end_session_endpoint in discovery document',
+        "error validating end_session_endpoint in discovery document",
         errors
       );
       return false;
@@ -639,7 +641,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     errors = this.validateUrlFromDiscoveryDocument(doc.token_endpoint);
     if (errors.length > 0) {
       this.logger.error(
-        'error validating token_endpoint in discovery document',
+        "error validating token_endpoint in discovery document",
         errors
       );
     }
@@ -647,7 +649,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     errors = this.validateUrlFromDiscoveryDocument(doc.revocation_endpoint);
     if (errors.length > 0) {
       this.logger.error(
-        'error validating revocation_endpoint in discovery document',
+        "error validating revocation_endpoint in discovery document",
         errors
       );
     }
@@ -655,7 +657,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     errors = this.validateUrlFromDiscoveryDocument(doc.userinfo_endpoint);
     if (errors.length > 0) {
       this.logger.error(
-        'error validating userinfo_endpoint in discovery document',
+        "error validating userinfo_endpoint in discovery document",
         errors
       );
       return false;
@@ -664,7 +666,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     errors = this.validateUrlFromDiscoveryDocument(doc.jwks_uri);
     if (errors.length > 0) {
       this.logger.error(
-        'error validating jwks_uri in discovery document',
+        "error validating jwks_uri in discovery document",
         errors
       );
       return false;
@@ -672,8 +674,8 @@ export class OAuthService extends AuthConfig implements OnDestroy {
 
     if (this.sessionChecksEnabled && !doc.check_session_iframe) {
       this.logger.warn(
-        'sessionChecksEnabled is activated but discovery document' +
-          ' does not contain a check_session_iframe field'
+        "sessionChecksEnabled is activated but discovery document" +
+          " does not contain a check_session_iframe field"
       );
     }
 
@@ -699,11 +701,9 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     password: string,
     headers: HttpHeaders = new HttpHeaders()
   ): Promise<UserInfo> {
-    return this.fetchTokenUsingPasswordFlow(
-      userName,
-      password,
-      headers
-    ).then(() => this.loadUserProfile());
+    return this.fetchTokenUsingPasswordFlow(userName, password, headers).then(
+      () => this.loadUserProfile()
+    );
   }
 
   /**
@@ -714,7 +714,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
    */
   public loadUserProfile(): Promise<UserInfo> {
     if (!this.hasValidAccessToken()) {
-      throw new Error('Can not load User Profile without access_token');
+      throw new Error("Can not load User Profile without access_token");
     }
     if (!this.validateUrlForHttps(this.userinfoEndpoint)) {
       throw new Error(
@@ -724,49 +724,45 @@ export class OAuthService extends AuthConfig implements OnDestroy {
 
     return new Promise((resolve, reject) => {
       const headers = new HttpHeaders().set(
-        'Authorization',
-        'Bearer ' + this.getAccessToken()
+        "Authorization",
+        "Bearer " + this.getAccessToken()
       );
 
-      this.http
-        .get<UserInfo>(this.userinfoEndpoint, { headers })
-        .subscribe(
-          info => {
-            this.debug('userinfo received', info);
+      this.http.get<UserInfo>(this.userinfoEndpoint, { headers }).subscribe(
+        (info) => {
+          this.debug("userinfo received", info);
 
-            const existingClaims = this.getIdentityClaims() || {};
+          const existingClaims = this.getIdentityClaims() || {};
 
-            if (!this.skipSubjectCheck) {
-              if (
-                this.oidc &&
-                (!existingClaims['sub'] || info.sub !== existingClaims['sub'])
-              ) {
-                const err =
-                  'if property oidc is true, the received user-id (sub) has to be the user-id ' +
-                  'of the user that has logged in with oidc.\n' +
-                  'if you are not using oidc but just oauth2 password flow set oidc to false';
+          if (!this.skipSubjectCheck) {
+            if (
+              this.oidc &&
+              (!existingClaims["sub"] || info.sub !== existingClaims["sub"])
+            ) {
+              const err =
+                "if property oidc is true, the received user-id (sub) has to be the user-id " +
+                "of the user that has logged in with oidc.\n" +
+                "if you are not using oidc but just oauth2 password flow set oidc to false";
 
-                reject(err);
-                return;
-              }
+              reject(err);
+              return;
             }
-
-            info = Object.assign({}, existingClaims, info);
-
-            this._storage.setItem('id_token_claims_obj', JSON.stringify(info));
-            this.eventsSubject.next(
-              new OAuthSuccessEvent('user_profile_loaded')
-            );
-            resolve(info);
-          },
-          err => {
-            this.logger.error('error loading user info', err);
-            this.eventsSubject.next(
-              new OAuthErrorEvent('user_profile_load_error', err)
-            );
-            reject(err);
           }
-        );
+
+          info = Object.assign({}, existingClaims, info);
+
+          this._storage.setItem("id_token_claims_obj", JSON.stringify(info));
+          this.eventsSubject.next(new OAuthSuccessEvent("user_profile_loaded"));
+          resolve(info);
+        },
+        (err) => {
+          this.logger.error("error loading user info", err);
+          this.eventsSubject.next(
+            new OAuthErrorEvent("user_profile_load_error", err)
+          );
+          reject(err);
+        }
+      );
     });
   }
 
@@ -783,7 +779,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
   ): Promise<TokenResponse> {
     this.assertUrlNotNullAndCorrectProtocol(
       this.tokenEndpoint,
-      'tokenEndpoint'
+      "tokenEndpoint"
     );
 
     return new Promise((resolve, reject) => {
@@ -794,22 +790,22 @@ export class OAuthService extends AuthConfig implements OnDestroy {
        * @stable
        */
       let params = new HttpParams({ encoder: new WebHttpUrlEncodingCodec() })
-        .set('grant_type', 'password')
-        .set('scope', this.scope)
-        .set('username', userName)
-        .set('password', password);
+        .set("grant_type", "password")
+        .set("scope", this.scope)
+        .set("username", userName)
+        .set("password", password);
 
       if (this.useHttpBasicAuth) {
         const header = btoa(`${this.clientId}:${this.dummyClientSecret}`);
-        headers = headers.set('Authorization', 'Basic ' + header);
+        headers = headers.set("Authorization", "Basic " + header);
       }
 
       if (!this.useHttpBasicAuth) {
-        params = params.set('client_id', this.clientId);
+        params = params.set("client_id", this.clientId);
       }
 
       if (!this.useHttpBasicAuth && this.dummyClientSecret) {
-        params = params.set('client_secret', this.dummyClientSecret);
+        params = params.set("client_secret", this.dummyClientSecret);
       }
 
       if (this.customQueryParams) {
@@ -819,15 +815,15 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       }
 
       headers = headers.set(
-        'Content-Type',
-        'application/x-www-form-urlencoded'
+        "Content-Type",
+        "application/x-www-form-urlencoded"
       );
 
       this.http
         .post<TokenResponse>(this.tokenEndpoint, params, { headers })
         .subscribe(
-          tokenResponse => {
-            this.debug('tokenResponse', tokenResponse);
+          (tokenResponse) => {
+            this.debug("tokenResponse", tokenResponse);
             this.storeAccessTokenResponse(
               tokenResponse.access_token,
               tokenResponse.refresh_token,
@@ -837,12 +833,12 @@ export class OAuthService extends AuthConfig implements OnDestroy {
               this.extractRecognizedCustomParameters(tokenResponse)
             );
 
-            this.eventsSubject.next(new OAuthSuccessEvent('token_received'));
+            this.eventsSubject.next(new OAuthSuccessEvent("token_received"));
             resolve(tokenResponse);
           },
-          err => {
-            this.logger.error('Error performing password flow', err);
-            this.eventsSubject.next(new OAuthErrorEvent('token_error', err));
+          (err) => {
+            this.logger.error("Error performing password flow", err);
+            this.eventsSubject.next(new OAuthErrorEvent("token_error", err));
             reject(err);
           }
         );
@@ -859,31 +855,31 @@ export class OAuthService extends AuthConfig implements OnDestroy {
   public refreshToken(): Promise<TokenResponse> {
     this.assertUrlNotNullAndCorrectProtocol(
       this.tokenEndpoint,
-      'tokenEndpoint'
+      "tokenEndpoint"
     );
 
     return new Promise((resolve, reject) => {
       let params = new HttpParams()
-        .set('grant_type', 'refresh_token')
-        .set('scope', this.scope)
-        .set('refresh_token', this._storage.getItem('refresh_token'));
+        .set("grant_type", "refresh_token")
+        .set("scope", this.scope)
+        .set("refresh_token", this._storage.getItem("refresh_token"));
 
       let headers = new HttpHeaders().set(
-        'Content-Type',
-        'application/x-www-form-urlencoded'
+        "Content-Type",
+        "application/x-www-form-urlencoded"
       );
 
       if (this.useHttpBasicAuth) {
         const header = btoa(`${this.clientId}:${this.dummyClientSecret}`);
-        headers = headers.set('Authorization', 'Basic ' + header);
+        headers = headers.set("Authorization", "Basic " + header);
       }
 
       if (!this.useHttpBasicAuth) {
-        params = params.set('client_id', this.clientId);
+        params = params.set("client_id", this.clientId);
       }
 
       if (!this.useHttpBasicAuth && this.dummyClientSecret) {
-        params = params.set('client_secret', this.dummyClientSecret);
+        params = params.set("client_secret", this.dummyClientSecret);
       }
 
       if (this.customQueryParams) {
@@ -895,7 +891,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       this.http
         .post<TokenResponse>(this.tokenEndpoint, params, { headers })
         .pipe(
-          switchMap(tokenResponse => {
+          switchMap((tokenResponse) => {
             if (tokenResponse.id_token) {
               return from(
                 this.processIdToken(
@@ -904,8 +900,8 @@ export class OAuthService extends AuthConfig implements OnDestroy {
                   true
                 )
               ).pipe(
-                tap(result => this.storeIdToken(result)),
-                map(_ => tokenResponse)
+                tap((result) => this.storeIdToken(result)),
+                map((_) => tokenResponse)
               );
             } else {
               return of(tokenResponse);
@@ -914,7 +910,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
         )
         .subscribe(
           (tokenResponse) => {
-            this.debug('refresh tokenResponse', tokenResponse);
+            this.debug("refresh tokenResponse", tokenResponse);
             this.storeAccessTokenResponse(
               tokenResponse.access_token,
               tokenResponse.refresh_token,
@@ -924,14 +920,14 @@ export class OAuthService extends AuthConfig implements OnDestroy {
               this.extractRecognizedCustomParameters(tokenResponse)
             );
 
-            this.eventsSubject.next(new OAuthSuccessEvent('token_received'));
-            this.eventsSubject.next(new OAuthSuccessEvent('token_refreshed'));
+            this.eventsSubject.next(new OAuthSuccessEvent("token_received"));
+            this.eventsSubject.next(new OAuthSuccessEvent("token_refreshed"));
             resolve(tokenResponse);
           },
-          err => {
-            this.logger.error('Error refreshing token', err);
+          (err) => {
+            this.logger.error("Error refreshing token", err);
             this.eventsSubject.next(
-              new OAuthErrorEvent('token_refresh_error', err)
+              new OAuthErrorEvent("token_refresh_error", err)
             );
             reject(err);
           }
@@ -942,7 +938,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
   protected removeSilentRefreshEventListener(): void {
     if (this.silentRefreshPostMessageEventListener) {
       window.removeEventListener(
-        'message',
+        "message",
         this.silentRefreshPostMessageEventListener
       );
       this.silentRefreshPostMessageEventListener = null;
@@ -958,12 +954,14 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       this.tryLogin({
         customHashFragment: message,
         preventClearHashAfterLogin: true,
-        customRedirectUri: this.silentRefreshRedirectUri || this.redirectUri
-      }).catch(err => this.debug('tryLogin during silent refresh failed', err));
+        customRedirectUri: this.silentRefreshRedirectUri || this.redirectUri,
+      }).catch((err) =>
+        this.debug("tryLogin during silent refresh failed", err)
+      );
     };
 
     window.addEventListener(
-      'message',
+      "message",
       this.silentRefreshPostMessageEventListener
     );
   }
@@ -980,69 +978,69 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     const claims: object = this.getIdentityClaims() || {};
 
     if (this.useIdTokenHintForSilentRefresh && this.hasValidIdToken()) {
-      params['id_token_hint'] = this.getIdToken();
+      params["id_token_hint"] = this.getIdToken();
     }
 
-    if (!this.validateUrlForHttps(this.loginUrl ?? '')) {
+    if (!this.validateUrlForHttps(this.loginUrl ?? "")) {
       throw new Error(
         "loginUrl  must use HTTPS (with TLS), or config value for property 'requireHttps' must be set to 'false' and allow HTTP (without TLS)."
       );
     }
 
-    if (typeof this.document === 'undefined') {
-      throw new Error('silent refresh is not supported on this platform');
+    if (typeof this.document === "undefined") {
+      throw new Error("silent refresh is not supported on this platform");
     }
 
     const existingIframe = this.document.getElementById(
-      this.silentRefreshIFrameName ?? ''
+      this.silentRefreshIFrameName ?? ""
     );
 
     if (existingIframe) {
       this.document.body.removeChild(existingIframe);
     }
 
-    this.silentRefreshSubject = claims['sub'];
+    this.silentRefreshSubject = claims["sub"];
 
-    const iframe = this.document.createElement('iframe');
-    iframe.id = this.silentRefreshIFrameName ?? '';
+    const iframe = this.document.createElement("iframe");
+    iframe.id = this.silentRefreshIFrameName ?? "";
 
     this.setupSilentRefreshEventListener();
 
     const redirectUri = this.silentRefreshRedirectUri || this.redirectUri;
-    this.createLoginUrl('', '', redirectUri, noPrompt, params).then(url => {
-      iframe.setAttribute('src', url);
+    this.createLoginUrl("", "", redirectUri, noPrompt, params).then((url) => {
+      iframe.setAttribute("src", url);
 
       if (!this.silentRefreshShowIFrame) {
-        iframe.style['display'] = 'none';
+        iframe.style["display"] = "none";
       }
       this.document?.body.appendChild(iframe ?? null);
     });
 
     const errors = this.events.pipe(
-      filter(e => e instanceof OAuthErrorEvent),
+      filter((e) => e instanceof OAuthErrorEvent),
       first()
     );
     const success = this.events.pipe(
-      filter(e => e.type === 'token_received'),
+      filter((e) => e.type === "token_received"),
       first()
     );
     const timeout = of(
-      new OAuthErrorEvent('silent_refresh_timeout', null)
+      new OAuthErrorEvent("silent_refresh_timeout", null)
     ).pipe(delay(this.silentRefreshTimeout ?? 0));
 
     return race([errors, success, timeout])
       .pipe(
-        map(e => {
+        map((e) => {
           if (e instanceof OAuthErrorEvent) {
-            if (e.type === 'silent_refresh_timeout') {
+            if (e.type === "silent_refresh_timeout") {
               this.eventsSubject.next(e);
             } else {
-              e = new OAuthErrorEvent('silent_refresh_error', e);
+              e = new OAuthErrorEvent("silent_refresh_error", e);
               this.eventsSubject.next(e);
             }
             throw e;
-          } else if (e.type === 'token_received') {
-            e = new OAuthSuccessEvent('silently_refreshed');
+          } else if (e.type === "token_received") {
+            e = new OAuthSuccessEvent("silently_refreshed");
             this.eventsSubject.next(e);
           }
           return e;
@@ -1065,15 +1063,9 @@ export class OAuthService extends AuthConfig implements OnDestroy {
 
   public initLoginFlowInPopup(options?: { height?: number; width?: number }) {
     options = options || {};
-    return this.createLoginUrl(
-      '',
-      '',
-      this.silentRefreshRedirectUri,
-      false,
-      {
-        display: 'popup'
-      }
-    ).then(url => {
+    return this.createLoginUrl("", "", this.silentRefreshRedirectUri, false, {
+      display: "popup",
+    }).then((url) => {
       return new Promise((resolve, reject) => {
         /**
          * Error handling section
@@ -1081,18 +1073,18 @@ export class OAuthService extends AuthConfig implements OnDestroy {
         const checkForPopupClosedInterval = 500;
         let windowRef = window.open(
           url,
-          '_blank',
+          "_blank",
           this.calculatePopupFeatures(options)
         );
         let checkForPopupClosedTimer: any;
         const checkForPopupClosed = () => {
           if (!windowRef || windowRef.closed) {
             cleanup();
-            reject(new OAuthErrorEvent('popup_closed', {}));
+            reject(new OAuthErrorEvent("popup_closed", {}));
           }
         };
         if (!windowRef) {
-          reject(new OAuthErrorEvent('popup_blocked', {}));
+          reject(new OAuthErrorEvent("popup_blocked", {}));
         } else {
           checkForPopupClosedTimer = window.setInterval(
             checkForPopupClosed,
@@ -1102,7 +1094,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
 
         const cleanup = () => {
           window.clearInterval(checkForPopupClosedTimer);
-          window.removeEventListener('message', listener);
+          window.removeEventListener("message", listener);
           if (windowRef !== null) {
             windowRef.close();
           }
@@ -1116,23 +1108,23 @@ export class OAuthService extends AuthConfig implements OnDestroy {
             this.tryLogin({
               customHashFragment: message,
               preventClearHashAfterLogin: true,
-              customRedirectUri: this.silentRefreshRedirectUri
+              customRedirectUri: this.silentRefreshRedirectUri,
             }).then(
               () => {
                 cleanup();
                 resolve(true);
               },
-              err => {
+              (err) => {
                 cleanup();
                 reject(err);
               }
             );
           } else {
-            console.log('false event firing');
+            console.log("false event firing");
           }
         };
 
-        window.addEventListener('message', listener);
+        window.addEventListener("message", listener);
       });
     });
   }
@@ -1151,13 +1143,13 @@ export class OAuthService extends AuthConfig implements OnDestroy {
   }
 
   protected processMessageEventMessage(e: MessageEvent): string {
-    let expectedPrefix = '#';
+    let expectedPrefix = "#";
 
     if (this.silentRefreshMessagePrefix) {
       expectedPrefix += this.silentRefreshMessagePrefix;
     }
 
-    if (!e || !e.data || typeof e.data !== 'string') {
+    if (!e || !e.data || typeof e.data !== "string") {
       return;
     }
 
@@ -1167,7 +1159,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       return;
     }
 
-    return '#' + prefixedMessage.substr(expectedPrefix.length);
+    return "#" + prefixedMessage.substr(expectedPrefix.length);
   }
 
   protected canPerformSessionCheck(): boolean {
@@ -1176,18 +1168,18 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     }
     if (!this.sessionCheckIFrameUrl) {
       console.warn(
-        'sessionChecksEnabled is activated but there is no sessionCheckIFrameUrl'
+        "sessionChecksEnabled is activated but there is no sessionCheckIFrameUrl"
       );
       return false;
     }
     const sessionState = this.getSessionState();
     if (!sessionState) {
       console.warn(
-        'sessionChecksEnabled is activated but there is no session_state'
+        "sessionChecksEnabled is activated but there is no session_state"
       );
       return false;
     }
-    if (typeof this.document === 'undefined') {
+    if (typeof this.document === "undefined") {
       return false;
     }
 
@@ -1201,16 +1193,16 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       const origin = e.origin.toLowerCase();
       const issuer = this.issuer.toLowerCase();
 
-      this.debug('sessionCheckEventListener');
+      this.debug("sessionCheckEventListener");
 
       if (!issuer.startsWith(origin)) {
         this.debug(
-          'sessionCheckEventListener',
-          'wrong origin',
+          "sessionCheckEventListener",
+          "wrong origin",
           origin,
-          'expected',
+          "expected",
           issuer,
-          'event',
+          "event",
           e
         );
 
@@ -1219,55 +1211,55 @@ export class OAuthService extends AuthConfig implements OnDestroy {
 
       // only run in Angular zone if it is 'changed' or 'error'
       switch (e.data) {
-        case 'unchanged':
+        case "unchanged":
           this.handleSessionUnchanged();
           break;
-        case 'changed':
+        case "changed":
           this.ngZone.run(() => {
             this.handleSessionChange();
           });
           break;
-        case 'error':
+        case "error":
           this.ngZone.run(() => {
             this.handleSessionError();
           });
           break;
       }
 
-      this.debug('got info from session check inframe', e);
+      this.debug("got info from session check inframe", e);
     };
 
     // prevent Angular from refreshing the view on every message (runs in intervals)
     this.ngZone.runOutsideAngular(() => {
-      window.addEventListener('message', this.sessionCheckEventListener);
+      window.addEventListener("message", this.sessionCheckEventListener);
     });
   }
 
   protected handleSessionUnchanged(): void {
-    this.debug('session check', 'session unchanged');
+    this.debug("session check", "session unchanged");
   }
 
   protected handleSessionChange(): void {
-    this.eventsSubject.next(new OAuthInfoEvent('session_changed'));
+    this.eventsSubject.next(new OAuthInfoEvent("session_changed"));
     this.stopSessionCheckTimer();
 
-    if (!this.useSilentRefresh && this.responseType === 'code') {
+    if (!this.useSilentRefresh && this.responseType === "code") {
       this.refreshToken()
-        .then(_ => {
-          this.debug('token refresh after session change worked');
+        .then((_) => {
+          this.debug("token refresh after session change worked");
         })
-        .catch(_ => {
-          this.debug('token refresh did not work after session changed');
-          this.eventsSubject.next(new OAuthInfoEvent('session_terminated'));
+        .catch((_) => {
+          this.debug("token refresh did not work after session changed");
+          this.eventsSubject.next(new OAuthInfoEvent("session_terminated"));
           this.logOut(true);
         });
     } else if (this.silentRefreshRedirectUri) {
-      this.silentRefresh().catch(_ =>
-        this.debug('silent refresh failed after session changed')
+      this.silentRefresh().catch((_) =>
+        this.debug("silent refresh failed after session changed")
       );
       this.waitForSilentRefreshAfterSessionChange();
     } else {
-      this.eventsSubject.next(new OAuthInfoEvent('session_terminated'));
+      this.eventsSubject.next(new OAuthInfoEvent("session_terminated"));
       this.logOut(true);
     }
   }
@@ -1277,16 +1269,16 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       .pipe(
         filter(
           (e: OAuthEvent) =>
-            e.type === 'silently_refreshed' ||
-            e.type === 'silent_refresh_timeout' ||
-            e.type === 'silent_refresh_error'
+            e.type === "silently_refreshed" ||
+            e.type === "silent_refresh_timeout" ||
+            e.type === "silent_refresh_error"
         ),
         first()
       )
-      .subscribe(e => {
-        if (e.type !== 'silently_refreshed') {
-          this.debug('silent refresh did not work after session changed');
-          this.eventsSubject.next(new OAuthInfoEvent('session_terminated'));
+      .subscribe((e) => {
+        if (e.type !== "silently_refreshed") {
+          this.debug("silent refresh did not work after session changed");
+          this.eventsSubject.next(new OAuthInfoEvent("session_terminated"));
           this.logOut(true);
         }
       });
@@ -1294,12 +1286,12 @@ export class OAuthService extends AuthConfig implements OnDestroy {
 
   protected handleSessionError(): void {
     this.stopSessionCheckTimer();
-    this.eventsSubject.next(new OAuthInfoEvent('session_error'));
+    this.eventsSubject.next(new OAuthInfoEvent("session_error"));
   }
 
   protected removeSessionCheckEventListener(): void {
     if (this.sessionCheckEventListener) {
-      window.removeEventListener('message', this.sessionCheckEventListener);
+      window.removeEventListener("message", this.sessionCheckEventListener);
       this.sessionCheckEventListener = null;
     }
   }
@@ -1316,14 +1308,14 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       this.document.body.removeChild(existingIframe);
     }
 
-    const iframe = this.document.createElement('iframe');
+    const iframe = this.document.createElement("iframe");
     iframe.id = this.sessionCheckIFrameName;
 
     this.setupSessionCheckEventListener();
 
     const url = this.sessionCheckIFrameUrl;
-    iframe.setAttribute('src', url);
-    iframe.style.display = 'none';
+    iframe.setAttribute("src", url);
+    iframe.style.display = "none";
     this.document.body.appendChild(iframe);
 
     this.startSessionCheckTimer();
@@ -1348,13 +1340,13 @@ export class OAuthService extends AuthConfig implements OnDestroy {
 
   public checkSession(): void {
     const iframe: any = this.document.getElementById(
-      this.sessionCheckIFrameName ?? ''
+      this.sessionCheckIFrameName ?? ""
     );
 
     if (!iframe) {
       this.logger.warn(
-        'checkSession did not find iframe',
-        this.sessionCheckIFrameName  ?? ''
+        "checkSession did not find iframe",
+        this.sessionCheckIFrameName ?? ""
       );
     }
 
@@ -1364,14 +1356,14 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       this.stopSessionCheckTimer();
     }
 
-    const message = this.clientId + ' ' + sessionState;
+    const message = this.clientId + " " + sessionState;
     iframe.contentWindow.postMessage(message, this.issuer);
   }
 
   protected async createLoginUrl(
-    state = '',
-    loginHint = '',
-    customRedirectUri = '',
+    state = "",
+    loginHint = "",
+    customRedirectUri = "",
     noPrompt = false,
     params: object = {}
   ): Promise<string> {
@@ -1395,87 +1387,85 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     }
 
     if (!this.requestAccessToken && !this.oidc) {
-      throw new Error('Either requestAccessToken or oidc or both must be true');
+      throw new Error("Either requestAccessToken or oidc or both must be true");
     }
 
     if (this.config.responseType) {
       this.responseType = this.config.responseType;
     } else {
       if (this.oidc && this.requestAccessToken) {
-        this.responseType = 'id_token token';
+        this.responseType = "id_token token";
       } else if (this.oidc && !this.requestAccessToken) {
-        this.responseType = 'id_token';
+        this.responseType = "id_token";
       } else {
-        this.responseType = 'token';
+        this.responseType = "token";
       }
     }
 
-    const seperationChar = that.loginUrl.indexOf('?') > -1 ? '&' : '?';
+    const seperationChar = that.loginUrl.indexOf("?") > -1 ? "&" : "?";
 
     let scope = that.scope;
 
     if (this.oidc && !scope.match(/(^|\s)openid($|\s)/)) {
-      scope = 'openid ' + scope;
+      scope = "openid " + scope;
     }
 
     let url =
       that.loginUrl +
       seperationChar +
-      'response_type=' +
+      "response_type=" +
       encodeURIComponent(that.responseType) +
-      '&client_id=' +
+      "&client_id=" +
       encodeURIComponent(that.clientId) +
-      '&state=' +
+      "&state=" +
       encodeURIComponent(state) +
-      '&redirect_uri=' +
+      "&redirect_uri=" +
       encodeURIComponent(redirectUri) +
-      '&scope=' +
+      "&scope=" +
       encodeURIComponent(scope);
 
-    if (this.responseType.includes('code') && !this.disablePKCE) {
-      const [
-        challenge,
-        verifier
-      ] = await this.createChallangeVerifierPairForPKCE();
+    if (this.responseType.includes("code") && !this.disablePKCE) {
+      const [challenge, verifier] =
+        await this.createChallangeVerifierPairForPKCE();
 
       if (
         this.saveNoncesInLocalStorage &&
-        typeof window['localStorage'] !== 'undefined'
+        typeof window["localStorage"] !== "undefined"
       ) {
-        localStorage.setItem('PKCE_verifier', verifier);
+        localStorage.setItem("PKCE_verifier", verifier);
       } else {
-        this._storage.setItem('PKCE_verifier', verifier);
+        this._storage.setItem("PKCE_verifier", verifier);
       }
 
-      url += '&code_challenge=' + challenge;
-      url += '&code_challenge_method=S256';
+      url += "&code_challenge=" + challenge;
+      url += "&code_challenge_method=S256";
     }
 
     if (loginHint) {
-      url += '&login_hint=' + encodeURIComponent(loginHint);
+      url += "&login_hint=" + encodeURIComponent(loginHint);
     }
 
     if (that.resource) {
-      url += '&resource=' + encodeURIComponent(that.resource);
+      url += "&resource=" + encodeURIComponent(that.resource);
     }
 
     if (that.oidc) {
-      url += '&nonce=' + encodeURIComponent(nonce);
+      url += "&nonce=" + encodeURIComponent(nonce);
     }
 
     if (noPrompt) {
-      url += '&prompt=none';
+      url += "&prompt=none";
     }
 
     for (const key of Object.keys(params)) {
       url +=
-        '&' + encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
+        "&" + encodeURIComponent(key) + "=" + encodeURIComponent(params[key]);
     }
 
     if (this.customQueryParams) {
       for (const key of Object.getOwnPropertyNames(this.customQueryParams)) {
         url +=
-          '&' + key + '=' + encodeURIComponent(this.customQueryParams[key]);
+          "&" + key + "=" + encodeURIComponent(this.customQueryParams[key]);
       }
     }
 
@@ -1483,8 +1473,8 @@ export class OAuthService extends AuthConfig implements OnDestroy {
   }
 
   initImplicitFlowInternal(
-    additionalState = '',
-    params: string | object = ''
+    additionalState = "",
+    params: string | object = ""
   ): void {
     if (this.inImplicitFlow) {
       return;
@@ -1501,16 +1491,16 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     let addParams: object = {};
     let loginHint: string = null;
 
-    if (typeof params === 'string') {
+    if (typeof params === "string") {
       loginHint = params;
-    } else if (typeof params === 'object') {
+    } else if (typeof params === "object") {
       addParams = params;
     }
 
     this.createLoginUrl(additionalState, loginHint, null, false, addParams)
       .then(this.config.openUri)
-      .catch(error => {
-        console.error('Error in initImplicitFlow', error);
+      .catch((error) => {
+        console.error("Error in initImplicitFlow", error);
         this.inImplicitFlow = false;
       });
   }
@@ -1525,15 +1515,17 @@ export class OAuthService extends AuthConfig implements OnDestroy {
    *               parameter loginHint (for the sake of compatibility with former versions)
    */
   public initImplicitFlow(
-    additionalState = '',
-    params: string | object = ''
+    additionalState = "",
+    params: string | object = ""
   ): void {
-    if (this.loginUrl !== '') {
+    if (this.loginUrl !== "") {
       this.initImplicitFlowInternal(additionalState, params);
     } else {
       this.events
-        .pipe(filter(e => e.type === 'discovery_document_loaded'))
-        .subscribe(_ => this.initImplicitFlowInternal(additionalState, params));
+        .pipe(filter((e) => e.type === "discovery_document_loaded"))
+        .subscribe((_) =>
+          this.initImplicitFlowInternal(additionalState, params)
+        );
     }
   }
 
@@ -1553,7 +1545,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
         idClaims: that.getIdentityClaims(),
         idToken: that.getIdToken(),
         accessToken: that.getAccessToken(),
-        state: that.state
+        state: that.state,
       };
       options.onTokenReceived(tokenParams);
     }
@@ -1566,26 +1558,26 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     grantedScopes: String,
     customParameters?: Map<string, string>
   ): void {
-    this._storage.setItem('access_token', accessToken);
+    this._storage.setItem("access_token", accessToken);
     if (grantedScopes && !Array.isArray(grantedScopes)) {
       this._storage.setItem(
-        'granted_scopes',
-        JSON.stringify(grantedScopes.split('+'))
+        "granted_scopes",
+        JSON.stringify(grantedScopes.split("+"))
       );
     } else if (grantedScopes && Array.isArray(grantedScopes)) {
-      this._storage.setItem('granted_scopes', JSON.stringify(grantedScopes));
+      this._storage.setItem("granted_scopes", JSON.stringify(grantedScopes));
     }
 
-    this._storage.setItem('access_token_stored_at', '' + Date.now());
+    this._storage.setItem("access_token_stored_at", "" + Date.now());
     if (expiresIn) {
       const expiresInMilliSeconds = expiresIn * 1000;
       const now = new Date();
       const expiresAt = now.getTime() + expiresInMilliSeconds;
-      this._storage.setItem('expires_at', '' + expiresAt);
+      this._storage.setItem("expires_at", "" + expiresAt);
     }
 
     if (refreshToken) {
-      this._storage.setItem('refresh_token', refreshToken);
+      this._storage.setItem("refresh_token", refreshToken);
     }
     if (customParameters) {
       customParameters.forEach((value: string, key: string) => {
@@ -1599,8 +1591,8 @@ export class OAuthService extends AuthConfig implements OnDestroy {
    * @param options Optional options.
    */
   public tryLogin(options: LoginOptions = null): Promise<boolean> {
-    if (this.config.responseType === 'code') {
-      return this.tryLoginCodeFlow(options).then(_ => true);
+    if (this.config.responseType === "code") {
+      return this.tryLoginCodeFlow(options).then((_) => true);
     } else {
       return this.tryLoginImplicitFlow(options);
     }
@@ -1611,7 +1603,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       return {};
     }
 
-    if (queryString.charAt(0) === '?') {
+    if (queryString.charAt(0) === "?") {
       queryString = queryString.substr(1);
     }
 
@@ -1627,17 +1619,17 @@ export class OAuthService extends AuthConfig implements OnDestroy {
 
     const parts = this.getCodePartsFromUrl(querySource);
 
-    const code = parts['code'];
-    const state = parts['state'];
+    const code = parts["code"];
+    const state = parts["state"];
 
-    const sessionState = parts['session_state'];
+    const sessionState = parts["session_state"];
 
     if (!options.preventClearHashAfterLogin) {
       const href = location.href
-        .replace(/[&\?]code=[^&\$]*/, '')
-        .replace(/[&\?]scope=[^&\$]*/, '')
-        .replace(/[&\?]state=[^&\$]*/, '')
-        .replace(/[&\?]session_state=[^&\$]*/, '');
+        .replace(/[&\?]code=[^&\$]*/, "")
+        .replace(/[&\?]scope=[^&\$]*/, "")
+        .replace(/[&\?]state=[^&\$]*/, "")
+        .replace(/[&\?]session_state=[^&\$]*/, "");
 
       history.replaceState(null, window.name, href);
     }
@@ -1645,10 +1637,10 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     let [nonceInState, userState] = this.parseState(state);
     this.state = userState;
 
-    if (parts['error']) {
-      this.debug('error trying to login');
+    if (parts["error"]) {
+      this.debug("error trying to login");
       this.handleLoginError({}, parts);
-      const err = new OAuthErrorEvent('code_error', {}, parts);
+      const err = new OAuthErrorEvent("code_error", {}, parts);
       this.eventsSubject.next(err);
       return Promise.reject(err);
     }
@@ -1659,7 +1651,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
 
     const success = this.validateNonce(nonceInState);
     if (!success) {
-      const event = new OAuthErrorEvent('invalid_nonce_in_state', null);
+      const event = new OAuthErrorEvent("invalid_nonce_in_state", null);
       this.eventsSubject.next(event);
       return Promise.reject(event);
     }
@@ -1667,7 +1659,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     this.storeSessionState(sessionState);
 
     if (code) {
-      return this.getTokenFromCode(code, options).then(_ => null);
+      return this.getTokenFromCode(code, options).then((_) => null);
     } else {
       return Promise.resolve();
     }
@@ -1683,7 +1675,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     }
 
     // normalize query string
-    if (queryString.charAt(0) === '?') {
+    if (queryString.charAt(0) === "?") {
       queryString = queryString.substr(1);
     }
 
@@ -1698,26 +1690,26 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     options: LoginOptions
   ): Promise<object> {
     let params = new HttpParams()
-      .set('grant_type', 'authorization_code')
-      .set('code', code)
-      .set('redirect_uri', options.customRedirectUri || this.redirectUri);
+      .set("grant_type", "authorization_code")
+      .set("code", code)
+      .set("redirect_uri", options.customRedirectUri || this.redirectUri);
 
     if (!this.disablePKCE) {
       let PKCEVerifier;
 
       if (
         this.saveNoncesInLocalStorage &&
-        typeof window['localStorage'] !== 'undefined'
+        typeof window["localStorage"] !== "undefined"
       ) {
-        PKCEVerifier = localStorage.getItem('PKCE_verifier');
+        PKCEVerifier = localStorage.getItem("PKCE_verifier");
       } else {
-        PKCEVerifier = this._storage.getItem('PKCE_verifier');
+        PKCEVerifier = this._storage.getItem("PKCE_verifier");
       }
 
       if (!PKCEVerifier) {
-        console.warn('No PKCE verifier found in oauth storage!');
+        console.warn("No PKCE verifier found in oauth storage!");
       } else {
-        params = params.set('code_verifier', PKCEVerifier);
+        params = params.set("code_verifier", PKCEVerifier);
       }
     }
 
@@ -1727,24 +1719,24 @@ export class OAuthService extends AuthConfig implements OnDestroy {
   private fetchAndProcessToken(params: HttpParams): Promise<TokenResponse> {
     this.assertUrlNotNullAndCorrectProtocol(
       this.tokenEndpoint,
-      'tokenEndpoint'
+      "tokenEndpoint"
     );
     let headers = new HttpHeaders().set(
-      'Content-Type',
-      'application/x-www-form-urlencoded'
+      "Content-Type",
+      "application/x-www-form-urlencoded"
     );
 
     if (this.useHttpBasicAuth) {
       const header = btoa(`${this.clientId}:${this.dummyClientSecret}`);
-      headers = headers.set('Authorization', 'Basic ' + header);
+      headers = headers.set("Authorization", "Basic " + header);
     }
 
     if (!this.useHttpBasicAuth) {
-      params = params.set('client_id', this.clientId);
+      params = params.set("client_id", this.clientId);
     }
 
     if (!this.useHttpBasicAuth && this.dummyClientSecret) {
-      params = params.set('client_secret', this.dummyClientSecret);
+      params = params.set("client_secret", this.dummyClientSecret);
     }
 
     return new Promise((resolve, reject) => {
@@ -1757,8 +1749,8 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       this.http
         .post<TokenResponse>(this.tokenEndpoint, params, { headers })
         .subscribe(
-          tokenResponse => {
-            this.debug('refresh tokenResponse', tokenResponse);
+          (tokenResponse) => {
+            this.debug("refresh tokenResponse", tokenResponse);
             this.storeAccessTokenResponse(
               tokenResponse.access_token,
               tokenResponse.refresh_token,
@@ -1773,38 +1765,38 @@ export class OAuthService extends AuthConfig implements OnDestroy {
                 tokenResponse.id_token,
                 tokenResponse.access_token
               )
-                .then(result => {
+                .then((result) => {
                   this.storeIdToken(result);
 
                   this.eventsSubject.next(
-                    new OAuthSuccessEvent('token_received')
+                    new OAuthSuccessEvent("token_received")
                   );
                   this.eventsSubject.next(
-                    new OAuthSuccessEvent('token_refreshed')
+                    new OAuthSuccessEvent("token_refreshed")
                   );
 
                   resolve(tokenResponse);
                 })
-                .catch(reason => {
+                .catch((reason) => {
                   this.eventsSubject.next(
-                    new OAuthErrorEvent('token_validation_error', reason)
+                    new OAuthErrorEvent("token_validation_error", reason)
                   );
-                  console.error('Error validating tokens');
+                  console.error("Error validating tokens");
                   console.error(reason);
 
                   reject(reason);
                 });
             } else {
-              this.eventsSubject.next(new OAuthSuccessEvent('token_received'));
-              this.eventsSubject.next(new OAuthSuccessEvent('token_refreshed'));
+              this.eventsSubject.next(new OAuthSuccessEvent("token_received"));
+              this.eventsSubject.next(new OAuthSuccessEvent("token_refreshed"));
 
               resolve(tokenResponse);
             }
           },
-          err => {
-            console.error('Error getting token', err);
+          (err) => {
+            console.error("Error getting token", err);
             this.eventsSubject.next(
-              new OAuthErrorEvent('token_refresh_error', err)
+              new OAuthErrorEvent("token_refresh_error", err)
             );
             reject(err);
           }
@@ -1831,29 +1823,29 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       parts = this.urlHelper.getHashFragmentParams();
     }
 
-    this.debug('parsed url', parts);
+    this.debug("parsed url", parts);
 
-    const state = parts['state'];
+    const state = parts["state"];
 
     let [nonceInState, userState] = this.parseState(state);
     this.state = userState;
 
-    if (parts['error']) {
-      this.debug('error trying to login');
+    if (parts["error"]) {
+      this.debug("error trying to login");
       this.handleLoginError(options, parts);
-      const err = new OAuthErrorEvent('token_error', {}, parts);
+      const err = new OAuthErrorEvent("token_error", {}, parts);
       this.eventsSubject.next(err);
       return Promise.reject(err);
     }
 
-    const accessToken = parts['access_token'];
-    const idToken = parts['id_token'];
-    const sessionState = parts['session_state'];
-    const grantedScopes = parts['scope'];
+    const accessToken = parts["access_token"];
+    const idToken = parts["id_token"];
+    const sessionState = parts["session_state"];
+    const grantedScopes = parts["scope"];
 
     if (!this.requestAccessToken && !this.oidc) {
       return Promise.reject(
-        'Either requestAccessToken or oidc (or both) must be true.'
+        "Either requestAccessToken or oidc (or both) must be true."
       );
     }
 
@@ -1869,9 +1861,9 @@ export class OAuthService extends AuthConfig implements OnDestroy {
 
     if (this.sessionChecksEnabled && !sessionState) {
       this.logger.warn(
-        'session checks (Session Status Change Notification) ' +
-          'were activated in the configuration but the id_token ' +
-          'does not contain a session_state claim'
+        "session checks (Session Status Change Notification) " +
+          "were activated in the configuration but the id_token " +
+          "does not contain a session_state claim"
       );
     }
 
@@ -1879,7 +1871,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       const success = this.validateNonce(nonceInState);
 
       if (!success) {
-        const event = new OAuthErrorEvent('invalid_nonce_in_state', null);
+        const event = new OAuthErrorEvent("invalid_nonce_in_state", null);
         this.eventsSubject.next(event);
         return Promise.reject(event);
       }
@@ -1889,15 +1881,15 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       this.storeAccessTokenResponse(
         accessToken,
         null,
-        parts['expires_in'] || this.fallbackAccessTokenExpirationTimeInSec,
+        parts["expires_in"] || this.fallbackAccessTokenExpirationTimeInSec,
         grantedScopes
       );
     }
 
     if (!this.oidc) {
-      this.eventsSubject.next(new OAuthSuccessEvent('token_received'));
+      this.eventsSubject.next(new OAuthSuccessEvent("token_received"));
       if (this.clearHashAfterLogin && !options.preventClearHashAfterLogin) {
-        location.hash = '';
+        location.hash = "";
       }
 
       this.callOnTokenReceivedIfExists(options);
@@ -1905,35 +1897,35 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     }
 
     return this.processIdToken(idToken, accessToken)
-      .then(result => {
+      .then((result) => {
         if (options.validationHandler) {
           return options
             .validationHandler({
               accessToken: accessToken,
               idClaims: result.idTokenClaims,
               idToken: result.idToken,
-              state: state
+              state: state,
             })
-            .then(_ => result);
+            .then((_) => result);
         }
         return result;
       })
-      .then(result => {
+      .then((result) => {
         this.storeIdToken(result);
         this.storeSessionState(sessionState);
         if (this.clearHashAfterLogin && !options.preventClearHashAfterLogin) {
-          location.hash = '';
+          location.hash = "";
         }
-        this.eventsSubject.next(new OAuthSuccessEvent('token_received'));
+        this.eventsSubject.next(new OAuthSuccessEvent("token_received"));
         this.callOnTokenReceivedIfExists(options);
         this.inImplicitFlow = false;
         return true;
       })
-      .catch(reason => {
+      .catch((reason) => {
         this.eventsSubject.next(
-          new OAuthErrorEvent('token_validation_error', reason)
+          new OAuthErrorEvent("token_validation_error", reason)
         );
-        this.logger.error('Error validating tokens');
+        this.logger.error("Error validating tokens");
         this.logger.error(reason);
         return Promise.reject(reason);
       });
@@ -1941,7 +1933,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
 
   private parseState(state: string): [string, string] {
     let nonce = state;
-    let userState = '';
+    let userState = "";
 
     if (state) {
       const idx = state.indexOf(this.config.nonceStateSeparator);
@@ -1958,15 +1950,15 @@ export class OAuthService extends AuthConfig implements OnDestroy {
 
     if (
       this.saveNoncesInLocalStorage &&
-      typeof window['localStorage'] !== 'undefined'
+      typeof window["localStorage"] !== "undefined"
     ) {
-      savedNonce = localStorage.getItem('nonce');
+      savedNonce = localStorage.getItem("nonce");
     } else {
-      savedNonce = this._storage?.getItem('nonce');
+      savedNonce = this._storage?.getItem("nonce");
     }
 
     if (savedNonce !== nonceInState) {
-      const err = 'Validating access_token failed, wrong state/nonce.';
+      const err = "Validating access_token failed, wrong state/nonce.";
       console.error(err, savedNonce, nonceInState);
       return false;
     }
@@ -1974,18 +1966,18 @@ export class OAuthService extends AuthConfig implements OnDestroy {
   }
 
   protected storeIdToken(idToken: ParsedIdToken): void {
-    this._storage.setItem('id_token', idToken.idToken);
-    this._storage.setItem('id_token_claims_obj', idToken.idTokenClaimsJson);
-    this._storage.setItem('id_token_expires_at', '' + idToken.idTokenExpiresAt);
-    this._storage.setItem('id_token_stored_at', '' + Date.now());
+    this._storage.setItem("id_token", idToken.idToken);
+    this._storage.setItem("id_token_claims_obj", idToken.idTokenClaimsJson);
+    this._storage.setItem("id_token_expires_at", "" + idToken.idTokenExpiresAt);
+    this._storage.setItem("id_token_stored_at", "" + Date.now());
   }
 
   protected storeSessionState(sessionState: string): void {
-    this._storage.setItem('session_state', sessionState);
+    this._storage.setItem("session_state", sessionState);
   }
 
   protected getSessionState(): string {
-    return this._storage.getItem('session_state');
+    return this._storage.getItem("session_state");
   }
 
   protected handleLoginError(options: LoginOptions, parts: object): void {
@@ -1993,7 +1985,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       options.onLoginError(parts);
     }
     if (this.clearHashAfterLogin && !options.preventClearHashAfterLogin) {
-      location.hash = '';
+      location.hash = "";
     }
   }
 
@@ -2005,7 +1997,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     accessToken: string,
     skipNonceCheck = false
   ): Promise<ParsedIdToken> {
-    const tokenParts = idToken.split('.');
+    const tokenParts = idToken.split(".");
     const headerBase64 = this.padBase64(tokenParts[0]);
     const headerJson = b64DecodeUnicode(headerBase64);
     const header = JSON.parse(headerJson);
@@ -2016,29 +2008,29 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     let savedNonce;
     if (
       this.saveNoncesInLocalStorage &&
-      typeof window['localStorage'] !== 'undefined'
+      typeof window["localStorage"] !== "undefined"
     ) {
-      savedNonce = localStorage.getItem('nonce');
+      savedNonce = localStorage.getItem("nonce");
     } else {
-      savedNonce = this._storage.getItem('nonce');
+      savedNonce = this._storage.getItem("nonce");
     }
 
     if (Array.isArray(claims.aud)) {
-      if (claims.aud.every(v => v !== this.clientId)) {
-        const err = 'Wrong audience: ' + claims.aud.join(',');
+      if (claims.aud.every((v) => v !== this.clientId)) {
+        const err = "Wrong audience: " + claims.aud.join(",");
         this.logger.warn(err);
         return Promise.reject(err);
       }
     } else {
       if (claims.aud !== this.clientId) {
-        const err = 'Wrong audience: ' + claims.aud;
+        const err = "Wrong audience: " + claims.aud;
         this.logger.warn(err);
         return Promise.reject(err);
       }
     }
 
     if (!claims.sub) {
-      const err = 'No sub claim in id_token';
+      const err = "No sub claim in id_token";
       this.logger.warn(err);
       return Promise.reject(err);
     }
@@ -2051,30 +2043,30 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     if (
       this.sessionChecksEnabled &&
       this.silentRefreshSubject &&
-      this.silentRefreshSubject !== claims['sub']
+      this.silentRefreshSubject !== claims["sub"]
     ) {
       const err =
-        'After refreshing, we got an id_token for another user (sub). ' +
-        `Expected sub: ${this.silentRefreshSubject}, received sub: ${claims['sub']}`;
+        "After refreshing, we got an id_token for another user (sub). " +
+        `Expected sub: ${this.silentRefreshSubject}, received sub: ${claims["sub"]}`;
 
       this.logger.warn(err);
       return Promise.reject(err);
     }
 
     if (!claims.iat) {
-      const err = 'No iat claim in id_token';
+      const err = "No iat claim in id_token";
       this.logger.warn(err);
       return Promise.reject(err);
     }
 
     if (!this.skipIssuerCheck && claims.iss !== this.issuer) {
-      const err = 'Wrong issuer: ' + claims.iss;
+      const err = "Wrong issuer: " + claims.iss;
       this.logger.warn(err);
       return Promise.reject(err);
     }
 
     if (!skipNonceCheck && claims.nonce !== savedNonce) {
-      const err = 'Wrong nonce: ' + claims.nonce;
+      const err = "Wrong nonce: " + claims.nonce;
       this.logger.warn(err);
       return Promise.reject(err);
     }
@@ -2083,17 +2075,17 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     // i.e. Based on spec the at_hash check is only true for implicit code flow on Ping Federate
     // https://www.pingidentity.com/developer/en/resources/openid-connect-developers-guide.html
     if (
-      this.hasOwnProperty('responseType') &&
-      (this.responseType === 'code' || this.responseType === 'id_token')
+      this.hasOwnProperty("responseType") &&
+      (this.responseType === "code" || this.responseType === "id_token")
     ) {
       this.disableAtHashCheck = true;
     }
     if (
       !this.disableAtHashCheck &&
       this.requestAccessToken &&
-      !claims['at_hash']
+      !claims["at_hash"]
     ) {
-      const err = 'An at_hash is needed!';
+      const err = "An at_hash is needed!";
       this.logger.warn(err);
       return Promise.reject(err);
     }
@@ -2107,12 +2099,12 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       issuedAtMSec - clockSkewInMSec >= now ||
       expiresAtMSec + clockSkewInMSec <= now
     ) {
-      const err = 'Token has expired';
+      const err = "Token has expired";
       console.error(err);
       console.error({
         now: now,
         issuedAtMSec: issuedAtMSec,
-        expiresAtMSec: expiresAtMSec
+        expiresAtMSec: expiresAtMSec,
       });
       return Promise.reject(err);
     }
@@ -2123,31 +2115,31 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       jwks: this.jwks,
       idTokenClaims: claims,
       idTokenHeader: header,
-      loadKeys: () => this.loadJwks()
+      loadKeys: () => this.loadJwks(),
     };
 
     if (this.disableAtHashCheck) {
-      return this.checkSignature(validationParams).then(_ => {
+      return this.checkSignature(validationParams).then((_) => {
         const result: ParsedIdToken = {
           idToken: idToken,
           idTokenClaims: claims,
           idTokenClaimsJson: claimsJson,
           idTokenHeader: header,
           idTokenHeaderJson: headerJson,
-          idTokenExpiresAt: expiresAtMSec
+          idTokenExpiresAt: expiresAtMSec,
         };
         return result;
       });
     }
 
-    return this.checkAtHash(validationParams).then(atHashValid => {
+    return this.checkAtHash(validationParams).then((atHashValid) => {
       if (!this.disableAtHashCheck && this.requestAccessToken && !atHashValid) {
-        const err = 'Wrong at_hash';
+        const err = "Wrong at_hash";
         this.logger.warn(err);
         return Promise.reject(err);
       }
 
-      return this.checkSignature(validationParams).then(_ => {
+      return this.checkSignature(validationParams).then((_) => {
         const atHashCheckEnabled = !this.disableAtHashCheck;
         const result: ParsedIdToken = {
           idToken: idToken,
@@ -2155,12 +2147,12 @@ export class OAuthService extends AuthConfig implements OnDestroy {
           idTokenClaimsJson: claimsJson,
           idTokenHeader: header,
           idTokenHeaderJson: headerJson,
-          idTokenExpiresAt: expiresAtMSec
+          idTokenExpiresAt: expiresAtMSec,
         };
         if (atHashCheckEnabled) {
-          return this.checkAtHash(validationParams).then(atHashValid1 => {
+          return this.checkAtHash(validationParams).then((atHashValid1) => {
             if (this.requestAccessToken && !atHashValid1) {
-              const err = 'Wrong at_hash';
+              const err = "Wrong at_hash";
               this.logger.warn(err);
               return Promise.reject(err);
             } else {
@@ -2178,7 +2170,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
    * Returns the received claims about the user.
    */
   public getIdentityClaims(): object {
-    const claims = this._storage.getItem('id_token_claims_obj');
+    const claims = this._storage.getItem("id_token_claims_obj");
     if (!claims) {
       return null;
     }
@@ -2189,7 +2181,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
    * Returns the granted scopes from the server.
    */
   public getGrantedScopes(): object {
-    const scopes = this._storage.getItem('granted_scopes');
+    const scopes = this._storage.getItem("granted_scopes");
     if (!scopes) {
       return null;
     }
@@ -2200,12 +2192,12 @@ export class OAuthService extends AuthConfig implements OnDestroy {
    * Returns the current id_token.
    */
   public getIdToken(): string {
-    return this._storage ? this._storage.getItem('id_token') : null;
+    return this._storage ? this._storage.getItem("id_token") : null;
   }
 
   protected padBase64(base64data): string {
     while (base64data.length % 4 !== 0) {
-      base64data += '=';
+      base64data += "=";
     }
     return base64data;
   }
@@ -2214,11 +2206,11 @@ export class OAuthService extends AuthConfig implements OnDestroy {
    * Returns the current access_token.
    */
   public getAccessToken(): string {
-    return this._storage ? this._storage.getItem('access_token') : null;
+    return this._storage ? this._storage.getItem("access_token") : null;
   }
 
   public getRefreshToken(): string {
-    return this._storage ? this._storage.getItem('refresh_token') : null;
+    return this._storage ? this._storage.getItem("refresh_token") : null;
   }
 
   /**
@@ -2226,18 +2218,18 @@ export class OAuthService extends AuthConfig implements OnDestroy {
    * as milliseconds since 1970.
    */
   public getAccessTokenExpiration(): number {
-    if (!this._storage.getItem('expires_at')) {
+    if (!this._storage.getItem("expires_at")) {
       return null;
     }
-    return parseInt(this._storage.getItem('expires_at'), 10);
+    return parseInt(this._storage.getItem("expires_at"), 10);
   }
 
   protected getAccessTokenStoredAt(): number {
-    return parseInt(this._storage.getItem('access_token_stored_at'), 10);
+    return parseInt(this._storage.getItem("access_token_stored_at"), 10);
   }
 
   protected getIdTokenStoredAt(): number {
-    return parseInt(this._storage.getItem('id_token_stored_at'), 10);
+    return parseInt(this._storage.getItem("id_token_stored_at"), 10);
   }
 
   /**
@@ -2245,11 +2237,11 @@ export class OAuthService extends AuthConfig implements OnDestroy {
    * as milliseconds since 1970.
    */
   public getIdTokenExpiration(): number {
-    if (!this._storage.getItem('id_token_expires_at')) {
+    if (!this._storage.getItem("id_token_expires_at")) {
       return null;
     }
 
-    return parseInt(this._storage.getItem('id_token_expires_at'), 10);
+    return parseInt(this._storage.getItem("id_token_expires_at"), 10);
   }
 
   /**
@@ -2257,7 +2249,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
    */
   public hasValidAccessToken(): boolean {
     if (this.getAccessToken()) {
-      const expiresAt = this._storage.getItem('expires_at');
+      const expiresAt = this._storage.getItem("expires_at");
       const now = new Date();
       if (expiresAt && parseInt(expiresAt, 10) < now.getTime()) {
         return false;
@@ -2274,7 +2266,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
    */
   public hasValidIdToken(): boolean {
     if (this.getIdToken()) {
-      const expiresAt = this._storage.getItem('id_token_expires_at');
+      const expiresAt = this._storage.getItem("id_token_expires_at");
       const now = new Date();
       if (expiresAt && parseInt(expiresAt, 10) < now.getTime()) {
         return false;
@@ -2303,7 +2295,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
    * to transmit the access_token to a service
    */
   public authorizationHeader(): string {
-    return 'Bearer ' + this.getAccessToken();
+    return "Bearer " + this.getAccessToken();
   }
 
   /**
@@ -2317,41 +2309,41 @@ export class OAuthService extends AuthConfig implements OnDestroy {
   public logOut(customParameters: object): void;
   public logOut(noRedirectToLogoutUrl: boolean): void;
   public logOut(noRedirectToLogoutUrl: boolean, state: string): void;
-  public logOut(customParameters: boolean | object = {}, state = ''): void {
+  public logOut(customParameters: boolean | object = {}, state = ""): void {
     let noRedirectToLogoutUrl = false;
-    if (typeof customParameters === 'boolean') {
+    if (typeof customParameters === "boolean") {
       noRedirectToLogoutUrl = customParameters;
       customParameters = {};
     }
 
     const id_token = this.getIdToken();
-    this._storage.removeItem('access_token');
-    this._storage.removeItem('id_token');
-    this._storage.removeItem('refresh_token');
+    this._storage.removeItem("access_token");
+    this._storage.removeItem("id_token");
+    this._storage.removeItem("refresh_token");
 
     if (this.saveNoncesInLocalStorage) {
-      localStorage.removeItem('nonce');
-      localStorage.removeItem('PKCE_verifier');
+      localStorage.removeItem("nonce");
+      localStorage.removeItem("PKCE_verifier");
     } else {
-      this._storage.removeItem('nonce');
-      this._storage.removeItem('PKCE_verifier');
+      this._storage.removeItem("nonce");
+      this._storage.removeItem("PKCE_verifier");
     }
 
-    this._storage.removeItem('expires_at');
-    this._storage.removeItem('id_token_claims_obj');
-    this._storage.removeItem('id_token_expires_at');
-    this._storage.removeItem('id_token_stored_at');
-    this._storage.removeItem('access_token_stored_at');
-    this._storage.removeItem('granted_scopes');
-    this._storage.removeItem('session_state');
+    this._storage.removeItem("expires_at");
+    this._storage.removeItem("id_token_claims_obj");
+    this._storage.removeItem("id_token_expires_at");
+    this._storage.removeItem("id_token_stored_at");
+    this._storage.removeItem("access_token_stored_at");
+    this._storage.removeItem("granted_scopes");
+    this._storage.removeItem("session_state");
     if (this.config.customTokenParameters) {
-      this.config.customTokenParameters.forEach(customParam =>
+      this.config.customTokenParameters.forEach((customParam) =>
         this._storage.removeItem(customParam)
       );
     }
     this.silentRefreshSubject = null;
 
-    this.eventsSubject.next(new OAuthInfoEvent('logout'));
+    this.eventsSubject.next(new OAuthInfoEvent("logout"));
 
     if (!this.logoutUrl) {
       return;
@@ -2373,7 +2365,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     }
 
     // For backward compatibility
-    if (this.logoutUrl.indexOf('{{') > -1) {
+    if (this.logoutUrl.indexOf("{{") > -1) {
       logoutUrl = this.logoutUrl
         .replace(/\{\{id_token\}\}/, id_token)
         .replace(/\{\{client_id\}\}/, this.clientId);
@@ -2381,15 +2373,15 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       let params = new HttpParams();
 
       if (id_token) {
-        params = params.set('id_token_hint', id_token);
+        params = params.set("id_token_hint", id_token);
       }
 
       const postLogoutUrl = this.postLogoutRedirectUri || this.redirectUri;
       if (postLogoutUrl) {
-        params = params.set('post_logout_redirect_uri', postLogoutUrl);
+        params = params.set("post_logout_redirect_uri", postLogoutUrl);
 
         if (state) {
-          params = params.set('state', state);
+          params = params.set("state", state);
         }
       }
 
@@ -2399,7 +2391,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
 
       logoutUrl =
         this.logoutUrl +
-        (this.logoutUrl.indexOf('?') > -1 ? '&' : '?') +
+        (this.logoutUrl.indexOf("?") > -1 ? "&" : "?") +
         params.toString();
     }
     this.config.openUri(logoutUrl);
@@ -2410,7 +2402,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
    */
   public createAndSaveNonce(): Promise<string> {
     const that = this;
-    return this.createNonce().then(function(nonce: any) {
+    return this.createNonce().then(function (nonce: any) {
       // Use localStorage for nonce if possible
       // localStorage is the only storage who survives a
       // redirect in ALL browsers (also IE)
@@ -2418,11 +2410,11 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       // IE into using localStorage for everything
       if (
         that.saveNoncesInLocalStorage &&
-        typeof window['localStorage'] !== 'undefined'
+        typeof window["localStorage"] !== "undefined"
       ) {
-        localStorage.setItem('nonce', nonce);
+        localStorage.setItem("nonce", nonce);
       } else {
-        that._storage.setItem('nonce', nonce);
+        that._storage.setItem("nonce", nonce);
       }
       return nonce;
     });
@@ -2454,10 +2446,10 @@ export class OAuthService extends AuthConfig implements OnDestroy {
   }
 
   protected createNonce(): Promise<string> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       if (this.rngUrl) {
         throw new Error(
-          'createNonce with rng-web-api has not been implemented so far'
+          "createNonce with rng-web-api has not been implemented so far"
         );
       }
 
@@ -2468,12 +2460,12 @@ export class OAuthService extends AuthConfig implements OnDestroy {
        * [A-Z] / [a-z] / [0-9] / "-" / "." / "_" / "~"
        */
       const unreserved =
-        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
       let size = 45;
-      let id = '';
+      let id = "";
 
       const crypto =
-        typeof self === 'undefined' ? null : self.crypto || self['msCrypto'];
+        typeof self === "undefined" ? null : self.crypto || self["msCrypto"];
       if (crypto) {
         let bytes = new Uint8Array(size);
         crypto.getRandomValues(bytes);
@@ -2483,7 +2475,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
           (bytes as any).map = Array.prototype.map;
         }
 
-        bytes = bytes.map(x => unreserved.charCodeAt(x % unreserved.length));
+        bytes = bytes.map((x) => unreserved.charCodeAt(x % unreserved.length));
         id = String.fromCharCode.apply(null, bytes);
       } else {
         while (0 < size--) {
@@ -2498,7 +2490,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
   protected async checkAtHash(params: ValidationParams): Promise<boolean> {
     if (!this.tokenValidationHandler) {
       this.logger.warn(
-        'No tokenValidationHandler configured. Cannot check at_hash.'
+        "No tokenValidationHandler configured. Cannot check at_hash."
       );
       return true;
     }
@@ -2508,7 +2500,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
   protected checkSignature(params: ValidationParams): Promise<any> {
     if (!this.tokenValidationHandler) {
       this.logger.warn(
-        'No tokenValidationHandler configured. Cannot check signature.'
+        "No tokenValidationHandler configured. Cannot check signature."
       );
       return Promise.resolve(null);
     }
@@ -2519,8 +2511,8 @@ export class OAuthService extends AuthConfig implements OnDestroy {
    * Start the implicit flow or the code flow,
    * depending on your configuration.
    */
-  public initLoginFlow(additionalState = '', params = {}): void {
-    if (this.responseType === 'code') {
+  public initLoginFlow(additionalState = "", params = {}): void {
+    if (this.responseType === "code") {
       return this.initCodeFlow(additionalState, params);
     } else {
       return this.initImplicitFlow(additionalState, params);
@@ -2531,27 +2523,27 @@ export class OAuthService extends AuthConfig implements OnDestroy {
    * Starts the authorization code flow and redirects to user to
    * the auth servers login url.
    */
-  public initCodeFlow(additionalState = '', params = {}): void {
-    if (this.loginUrl !== '') {
+  public initCodeFlow(additionalState = "", params = {}): void {
+    if (this.loginUrl !== "") {
       this.initCodeFlowInternal(additionalState, params);
     } else {
       this.events
-        .pipe(filter(e => e.type === 'discovery_document_loaded'))
-        .subscribe(_ => this.initCodeFlowInternal(additionalState, params));
+        .pipe(filter((e) => e.type === "discovery_document_loaded"))
+        .subscribe((_) => this.initCodeFlowInternal(additionalState, params));
     }
   }
 
-  private initCodeFlowInternal(additionalState = '', params = {}): void {
+  private initCodeFlowInternal(additionalState = "", params = {}): void {
     if (!this.validateUrlForHttps(this.loginUrl)) {
       throw new Error(
         "loginUrl  must use HTTPS (with TLS), or config value for property 'requireHttps' must be set to 'false' and allow HTTP (without TLS)."
       );
     }
 
-    this.createLoginUrl(additionalState, '', null, false, params)
+    this.createLoginUrl(additionalState, "", null, false, params)
       .then(this.config.openUri)
-      .catch(error => {
-        console.error('Error in initAuthorizationCodeFlow');
+      .catch((error) => {
+        console.error("Error in initAuthorizationCodeFlow");
         console.error(error);
       });
   }
@@ -2561,12 +2553,12 @@ export class OAuthService extends AuthConfig implements OnDestroy {
   > {
     if (!this.crypto) {
       throw new Error(
-        'PKCE support for code flow needs a CryptoHander. Did you import the OAuthModule using forRoot() ?'
+        "PKCE support for code flow needs a CryptoHander. Did you import the OAuthModule using forRoot() ?"
       );
     }
 
     const verifier = await this.createNonce();
-    const challengeRaw = await this.crypto.calcHash(verifier, 'sha-256');
+    const challengeRaw = await this.crypto.calcHash(verifier, "sha-256");
     const challenge = base64UrlEncode(challengeRaw);
 
     return [challenge, verifier];
@@ -2610,21 +2602,21 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     let params = new HttpParams();
 
     let headers = new HttpHeaders().set(
-      'Content-Type',
-      'application/x-www-form-urlencoded'
+      "Content-Type",
+      "application/x-www-form-urlencoded"
     );
 
     if (this.useHttpBasicAuth) {
       const header = btoa(`${this.clientId}:${this.dummyClientSecret}`);
-      headers = headers.set('Authorization', 'Basic ' + header);
+      headers = headers.set("Authorization", "Basic " + header);
     }
 
     if (!this.useHttpBasicAuth) {
-      params = params.set('client_id', this.clientId);
+      params = params.set("client_id", this.clientId);
     }
 
     if (!this.useHttpBasicAuth && this.dummyClientSecret) {
-      params = params.set('client_secret', this.dummyClientSecret);
+      params = params.set("client_secret", this.dummyClientSecret);
     }
 
     if (this.customQueryParams) {
@@ -2639,8 +2631,8 @@ export class OAuthService extends AuthConfig implements OnDestroy {
 
       if (accessToken) {
         let revokationParams = params
-          .set('token', accessToken)
-          .set('token_type_hint', 'access_token');
+          .set("token", accessToken)
+          .set("token_type_hint", "access_token");
         revokeAccessToken = this.http.post<void>(
           revokeEndpoint,
           revokationParams,
@@ -2652,8 +2644,8 @@ export class OAuthService extends AuthConfig implements OnDestroy {
 
       if (refreshToken) {
         let revokationParams = params
-          .set('token', refreshToken)
-          .set('token_type_hint', 'refresh_token');
+          .set("token", refreshToken)
+          .set("token_type_hint", "refresh_token");
         revokeRefreshToken = this.http.post<void>(
           revokeEndpoint,
           revokationParams,
@@ -2684,15 +2676,15 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       }
 
       combineLatest([revokeAccessToken, revokeRefreshToken]).subscribe(
-        res => {
+        (res) => {
           this.logOut(customParameters);
           resolve(res);
-          this.logger.info('Token successfully revoked');
+          this.logger.info("Token successfully revoked");
         },
-        err => {
-          this.logger.error('Error revoking token', err);
+        (err) => {
+          this.logger.error("Error revoking token", err);
           this.eventsSubject.next(
-            new OAuthErrorEvent('token_revoke_error', err)
+            new OAuthErrorEvent("token_revoke_error", err)
           );
           reject(err);
         }

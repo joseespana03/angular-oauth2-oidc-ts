@@ -2,33 +2,33 @@ export class AuthConfig {
   /**
    * The client's id as registered with the auth server
    */
-  public clientId? = '';
+  public clientId? = "";
 
   /**
    * The client's redirectUri as registered with the auth server
    */
-  public redirectUri? = '';
+  public redirectUri? = "";
 
   /**
    * An optional second redirectUri where the auth server
    * redirects the user to after logging out.
    */
-  public postLogoutRedirectUri? = '';
+  public postLogoutRedirectUri? = "";
 
   /**
    * The auth server's endpoint that allows to log
    * the user in when using implicit flow.
    */
-  public loginUrl? = '';
+  public loginUrl? = "";
 
   /**
    * The requested scopes
    */
-  public scope? = 'openid profile';
+  public scope? = "openid profile";
 
-  public resource? = '';
+  public resource? = "";
 
-  public rngUrl? = '';
+  public rngUrl? = "";
 
   /**
    * Defines whether to use OpenId Connect during
@@ -47,12 +47,12 @@ export class AuthConfig {
   /**
    * The issuer's uri.
    */
-  public issuer? = '';
+  public issuer? = "";
 
   /**
    * The logout url.
    */
-  public logoutUrl? = '';
+  public logoutUrl? = "";
 
   /**
    * Defines whether to clear the hash fragment after logging in.
@@ -79,7 +79,7 @@ export class AuthConfig {
    */
   public userinfoEndpoint?: string = null;
 
-  public responseType? = '';
+  public responseType? = "";
 
   /**
    * Defines whether additional debug information should
@@ -92,9 +92,9 @@ export class AuthConfig {
   /**
    * The redirect uri used when doing silent refresh.
    */
-  public silentRefreshRedirectUri? = '';
+  public silentRefreshRedirectUri? = "";
 
-  public silentRefreshMessagePrefix? = '';
+  public silentRefreshMessagePrefix? = "";
 
   /**
    * Set this to true to display the iframe used for
@@ -130,7 +130,7 @@ export class AuthConfig {
    * http for localhost, while every other domains need
    * to be used with https.
    */
-  public requireHttps?: boolean | 'remoteOnly' = 'remoteOnly';
+  public requireHttps?: boolean | "remoteOnly" = "remoteOnly";
 
   /**
    * Defines whether every url provided by the discovery
@@ -151,7 +151,7 @@ export class AuthConfig {
    */
   public customQueryParams?: object = null;
 
-  public silentRefreshIFrameName? = 'angular-oauth-oidc-silent-refresh-iframe';
+  public silentRefreshIFrameName? = "angular-oauth-oidc-silent-refresh-iframe";
 
   /**
    * Defines when the token_timeout event should be raised.
@@ -181,7 +181,7 @@ export class AuthConfig {
   /**
    * Name of the iframe to use for session checks
    */
-  public sessionCheckIFrameName? = 'angular-oauth-oidc-check-session-iframe';
+  public sessionCheckIFrameName? = "angular-oauth-oidc-check-session-iframe";
 
   /**
    * This property has been introduced to disable at_hash checks
@@ -219,7 +219,7 @@ export class AuthConfig {
    * Default separator is ';' (encoded %3B).
    * In rare cases, this character might be forbidden or inconvenient to use by the issuer so it can be customized.
    */
-  public nonceStateSeparator? = ';';
+  public nonceStateSeparator? = ";";
 
   /**
    * Set this to true to use HTTP BASIC auth for AJAX calls
@@ -262,7 +262,7 @@ export class AuthConfig {
    * allowing a way for implementations to specify their own method of routing to new
    * urls.
    */
-  public openUri?: (uri: string) => void = uri => {
+  public openUri?: (uri: string) => void = (uri) => {
     location.href = uri;
   };
 }

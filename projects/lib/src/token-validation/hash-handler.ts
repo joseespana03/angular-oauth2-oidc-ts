@@ -1,9 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Injectable } from "@angular/core";
 
-import { factory } from './js-sha256';
 // const sha256 = factory();
 
-import fsha256 from 'fast-sha256js';
+import fsha256 from "./fast-sha256js";
 
 /**
  * Abstraction for crypto algorithms
@@ -13,7 +12,7 @@ export abstract class HashHandler {
 }
 
 function decodeUTF8(s: any) {
-  if (typeof s !== 'string') throw new TypeError('expected string');
+  if (typeof s !== "string") throw new TypeError("expected string");
   var i,
     d = s,
     b = new Uint8Array(d.length);
@@ -25,7 +24,7 @@ function encodeUTF8(arr: any) {
   var i,
     s = [];
   for (i = 0; i < arr.length; i++) s.push(String.fromCharCode(arr[i]));
-  return s.join('');
+  return s.join("");
 }
 
 @Injectable()
@@ -50,7 +49,7 @@ export class DefaultHashHandler implements HashHandler {
   }
 
   toHashString2(byteArray: number[]) {
-    let result = '';
+    let result = "";
     for (let e of byteArray) {
       result += String.fromCharCode(e);
     }
@@ -59,7 +58,7 @@ export class DefaultHashHandler implements HashHandler {
 
   toHashString(buffer: ArrayBuffer) {
     const byteArray = new Uint8Array(buffer);
-    let result = '';
+    let result = "";
     for (let e of byteArray) {
       result += String.fromCharCode(e);
     }

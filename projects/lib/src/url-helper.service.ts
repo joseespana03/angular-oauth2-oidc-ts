@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable } from "@angular/core";
 
 @Injectable()
 export class UrlHelperService {
@@ -7,11 +7,11 @@ export class UrlHelperService {
 
     hash = decodeURIComponent(hash);
 
-    if (hash.indexOf('#') !== 0) {
+    if (hash.indexOf("#") !== 0) {
       return {};
     }
 
-    const questionMarkPosition = hash.indexOf('?');
+    const questionMarkPosition = hash.indexOf("?");
 
     if (questionMarkPosition > -1) {
       hash = hash.substr(questionMarkPosition + 1);
@@ -30,11 +30,11 @@ export class UrlHelperService {
       return data;
     }
 
-    pairs = queryString.split('&');
+    pairs = queryString.split("&");
 
     for (let i = 0; i < pairs.length; i++) {
       pair = pairs[i];
-      separatorIndex = pair.indexOf('=');
+      separatorIndex = pair.indexOf("=");
 
       if (separatorIndex === -1) {
         escapedKey = pair;
@@ -45,9 +45,9 @@ export class UrlHelperService {
       }
 
       key = decodeURIComponent(escapedKey);
-      value = decodeURIComponent(escapedValue ?? '');
+      value = decodeURIComponent(escapedValue ?? "");
 
-      if (key.substr(0, 1) === '/') {
+      if (key.substr(0, 1) === "/") {
         key = key.substr(1);
       }
 

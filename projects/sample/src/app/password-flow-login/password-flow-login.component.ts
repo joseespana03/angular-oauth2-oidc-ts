@@ -1,10 +1,10 @@
-import { authPasswordFlowConfig } from '../auth-password-flow.config';
-import { OAuthService } from 'angular-oauth2-oidc';
-import { Component, OnInit } from '@angular/core';
+import { authPasswordFlowConfig } from "../auth-password-flow.config";
+import { OAuthService } from "angular-oauth2-oidc";
+import { Component, OnInit } from "@angular/core";
 
 @Component({
-  selector: 'app-password-flow-login',
-  templateUrl: './password-flow-login.component.html'
+  selector: "app-password-flow-login",
+  templateUrl: "./password-flow-login.component.html",
 })
 export class PasswordFlowLoginComponent implements OnInit {
   userName: string;
@@ -24,7 +24,7 @@ export class PasswordFlowLoginComponent implements OnInit {
   ngOnInit() {}
 
   loadUserProfile(): void {
-    this.oauthService.loadUserProfile().then(up => (this.userProfile = up));
+    this.oauthService.loadUserProfile().then((up) => (this.userProfile = up));
   }
 
   get access_token() {
@@ -38,13 +38,13 @@ export class PasswordFlowLoginComponent implements OnInit {
   get givenName() {
     var claims = this.oauthService.getIdentityClaims();
     if (!claims) return null;
-    return claims['given_name'];
+    return claims["given_name"];
   }
 
   get familyName() {
     var claims = this.oauthService.getIdentityClaims();
     if (!claims) return null;
-    return claims['family_name'];
+    return claims["family_name"];
   }
 
   loginWithPassword() {
@@ -54,11 +54,11 @@ export class PasswordFlowLoginComponent implements OnInit {
         this.password
       )
       .then(() => {
-        console.debug('successfully logged in');
+        console.debug("successfully logged in");
         this.loginFailed = false;
       })
-      .catch(err => {
-        console.error('error logging in', err);
+      .catch((err) => {
+        console.error("error logging in", err);
         this.loginFailed = true;
       });
   }

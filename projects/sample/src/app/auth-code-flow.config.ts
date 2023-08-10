@@ -1,19 +1,19 @@
-import { AuthConfig } from 'angular-oauth2-oidc';
-import { useSilentRefreshForCodeFlow } from '../flags';
+import { AuthConfig } from "angular-oauth2-oidc";
+import { useSilentRefreshForCodeFlow } from "../flags";
 
 export const authCodeFlowConfig: AuthConfig = {
-  issuer: 'https://idsvr4.azurewebsites.net',
+  issuer: "https://idsvr4.azurewebsites.net",
 
   // URL of the SPA to redirect the user to after login
   redirectUri:
     window.location.origin +
-    (localStorage.getItem('useHashLocationStrategy') === 'true'
-      ? '/#/index.html'
-      : '/index.html'),
+    (localStorage.getItem("useHashLocationStrategy") === "true"
+      ? "/#/index.html"
+      : "/index.html"),
 
   // The SPA's id. The SPA is registerd with this id at the auth-server
   // clientId: 'server.code',
-  clientId: 'spa',
+  clientId: "spa",
 
   // Just needed if your auth server demands a secret. In general, this
   // is a sign that the auth server is not configured with SPAs in mind
@@ -21,15 +21,15 @@ export const authCodeFlowConfig: AuthConfig = {
   // such applications.
   // dummyClientSecret: 'secret',
 
-  responseType: 'code',
+  responseType: "code",
 
   // set the scope for the permissions the client should request
   // The first four are defined by OIDC.
   // Important: Request offline_access to get a refresh token
   // The api scope is a usecase specific one
   scope: useSilentRefreshForCodeFlow
-    ? 'openid profile email api'
-    : 'openid profile email offline_access api',
+    ? "openid profile email api"
+    : "openid profile email offline_access api",
 
   // ^^ Please note that offline_access is not needed for silent refresh
   // At least when using idsvr, this even prevents silent refresh
@@ -49,5 +49,5 @@ export const authCodeFlowConfig: AuthConfig = {
   timeoutFactor: 0.01,
   // disablePKCI: true,
 
-  clearHashAfterLogin: false
+  clearHashAfterLogin: false,
 };

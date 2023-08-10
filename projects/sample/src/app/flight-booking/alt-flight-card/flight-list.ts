@@ -1,7 +1,7 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { Flight } from '../../entities/flight';
+import { Component, Input, Output, EventEmitter } from "@angular/core";
+import { Flight } from "../../entities/flight";
 @Component({
-  selector: 'flight-list',
+  selector: "flight-list",
   template: `
     <div class="row">
       <div *ngFor="let f of flights" class="col-sm-6 col-md-4 col-lg-3 ">
@@ -13,7 +13,7 @@ import { Flight } from '../../entities/flight';
         </alt-flight-card>
       </div>
     </div>
-  `
+  `,
 })
 export class FlightListComponent {
   @Input() flights: Flight[] = [];

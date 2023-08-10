@@ -1,24 +1,24 @@
-import { Injectable, Optional } from '@angular/core';
+import { Injectable, Optional } from "@angular/core";
 
 import {
   HttpEvent,
   HttpHandler,
   HttpInterceptor,
-  HttpRequest
-} from '@angular/common/http';
-import { Observable, of, merge } from 'rxjs';
+  HttpRequest,
+} from "@angular/common/http";
+import { Observable, of, merge } from "rxjs";
 import {
   catchError,
   filter,
   map,
   take,
   mergeMap,
-  timeout
-} from 'rxjs/operators';
-import { OAuthResourceServerErrorHandler } from './resource-server-error-handler';
-import { OAuthModuleConfig } from '../oauth-module.config';
-import { OAuthStorage } from '../types';
-import { OAuthService } from '../oauth-service';
+  timeout,
+} from "rxjs/operators";
+import { OAuthResourceServerErrorHandler } from "./resource-server-error-handler";
+import { OAuthModuleConfig } from "../oauth-module.config";
+import { OAuthStorage } from "../types";
+import { OAuthService } from "../oauth-service";
 
 @Injectable()
 export class DefaultOAuthInterceptor implements HttpInterceptor {
@@ -35,7 +35,7 @@ export class DefaultOAuthInterceptor implements HttpInterceptor {
     }
 
     if (this.moduleConfig.resourceServer.allowedUrls) {
-      return !!this.moduleConfig.resourceServer.allowedUrls.find(u =>
+      return !!this.moduleConfig.resourceServer.allowedUrls.find((u) =>
         url.startsWith(u)
       );
     }
@@ -62,31 +62,31 @@ export class DefaultOAuthInterceptor implements HttpInterceptor {
     if (!sendAccessToken) {
       return next
         .handle(req)
-        .pipe(catchError(err => this.errorHandler.handleError(err)));
+        .pipe(catchError((err) => this.errorHandler.handleError(err)));
     }
 
     return merge(
       of(this.oAuthService.getAccessToken()).pipe(
-        filter(token => (token ? true : false))
+        filter((token) => (token ? true : false))
       ),
       this.oAuthService.events.pipe(
-        filter(e => e.type === 'token_received'),
+        filter((e) => e.type === "token_received"),
         timeout(this.oAuthService.waitForTokenInMsec || 0),
-        catchError(_ => of(null)), // timeout is not an error
-        map(_ => this.oAuthService.getAccessToken())
+        catchError((_) => of(null)), // timeout is not an error
+        map((_) => this.oAuthService.getAccessToken())
       )
     ).pipe(
       take(1),
-      mergeMap(token => {
+      mergeMap((token) => {
         if (token) {
-          const header = 'Bearer ' + token;
-          const headers = req.headers.set('Authorization', header);
+          const header = "Bearer " + token;
+          const headers = req.headers.set("Authorization", header);
           req = req.clone({ headers });
         }
 
         return next
           .handle(req)
-          .pipe(catchError(err => this.errorHandler.handleError(err)));
+          .pipe(catchError((err) => this.errorHandler.handleError(err)));
       })
     );
   }

@@ -1,4 +1,4 @@
-import { base64UrlEncode } from '../base64-helper';
+import { base64UrlEncode } from "../base64-helper";
 
 export interface ValidationParams {
   idToken: string;
@@ -52,11 +52,11 @@ export abstract class AbstractValidationHandler implements ValidationHandler {
 
     let atHash = base64UrlEncode(leftMostHalf);
 
-    let claimsAtHash = params.idTokenClaims['at_hash'].replace(/=/g, '');
+    let claimsAtHash = params.idTokenClaims["at_hash"].replace(/=/g, "");
 
     if (atHash !== claimsAtHash) {
-      console.error('exptected at_hash: ' + atHash);
-      console.error('actual at_hash: ' + claimsAtHash);
+      console.error("exptected at_hash: " + atHash);
+      console.error("actual at_hash: " + claimsAtHash);
     }
 
     return atHash === claimsAtHash;
@@ -69,13 +69,13 @@ export abstract class AbstractValidationHandler implements ValidationHandler {
    * @param jwtHeader the id_token's parsed header
    */
   protected inferHashAlgorithm(jwtHeader: { [key: string]: any }): string {
-    let alg: string = jwtHeader['alg'];
+    let alg: string = jwtHeader["alg"];
 
     if (!alg.match(/^.S[0-9]{3}$/)) {
-      throw new Error('Algorithm not supported: ' + alg);
+      throw new Error("Algorithm not supported: " + alg);
     }
 
-    return 'sha-' + alg.substr(2);
+    return "sha-" + alg.substr(2);
   }
 
   /**
