@@ -1,4 +1,5 @@
 // see: https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding#The_.22Unicode_Problem.22
+// @ts-ignore
 export function b64DecodeUnicode(str) {
   const base64 = str.replace(/\-/g, "+").replace(/\_/g, "/");
 
@@ -12,6 +13,7 @@ export function b64DecodeUnicode(str) {
   );
 }
 
+// @ts-ignore
 export function base64UrlEncode(str): string {
   const base64 = btoa(str);
   return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");

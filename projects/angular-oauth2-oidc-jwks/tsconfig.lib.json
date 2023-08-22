@@ -1,5 +1,5 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../../angular-oauth2-oidc-ts/tsconfig.base.json",
   "compilerOptions": {
     "outDir": "../../out-tsc/lib",
     "target": "es2015",
@@ -16,5 +16,6 @@
     "strictInjectionParameters": true,
     "enableResourceInlining": true
   },
-  "exclude": ["src/test.ts", "**/*.spec.ts"]
+  "exclude": [
+    "src/test.ts", "**/*.spec.ts"]
 }

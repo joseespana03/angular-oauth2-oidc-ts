@@ -5,7 +5,7 @@ export interface ValidationParams {
   accessToken: string;
   idTokenHeader: { [key: string]: any };
   idTokenClaims: { [key: string]: any };
-  jwks: object;
+  jwks: any;
   loadKeys: () => Promise<object>;
 }
 

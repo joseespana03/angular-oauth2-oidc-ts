@@ -3,7 +3,7 @@ import { HttpClient, HttpHeaders, HttpParams } from "@angular/common/http";
 import { BASE_URL } from "../../app.tokens";
 import { Observable } from "rxjs";
 import { Flight } from "../../entities/flight";
-import { OAuthService } from "angular-oauth2-oidc";
+import { OAuthService } from "libs/angular-oauth2-oidc/projects/lib/src/public_api";
 
 @Injectable()
 export class FlightService {

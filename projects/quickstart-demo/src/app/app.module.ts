@@ -2,7 +2,7 @@ import { BrowserModule } from "@angular/platform-browser";
 import { NgModule } from "@angular/core";
 
 import { AppComponent } from "./app.component";
-import { OAuthModule, OAuthStorage } from "angular-oauth2-oidc";
+import { OAuthModule, OAuthStorage } from "libs/angular-oauth2-oidc/projects/lib/src/public_api";
 import { HttpClientModule } from "@angular/common/http";
 
 @NgModule({

@@ -1,6 +1,6 @@
 import { authConfig } from "../auth.config";
 import { Component, OnInit } from "@angular/core";
-import { OAuthService } from "angular-oauth2-oidc";
+import { OAuthService } from "libs/angular-oauth2-oidc/projects/lib/src/public_api";
 import { authCodeFlowConfig } from "../auth-code-flow.config";
 import { ActivatedRoute } from "@angular/router";
 

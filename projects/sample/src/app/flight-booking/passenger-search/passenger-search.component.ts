@@ -1,5 +1,5 @@
 import { Component, OnInit } from "@angular/core";
-import { OAuthService } from "angular-oauth2-oidc";
+import { OAuthService } from "libs/angular-oauth2-oidc/projects/lib/src/public_api";
 
 @Component({
   template: `

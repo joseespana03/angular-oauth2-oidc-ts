@@ -4,5 +4,8 @@
   "dependencies": {
     "jsrsasign": "^8.0.12",
     "tslib": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/jsrsasign": "^10.5.8"
   }
 }

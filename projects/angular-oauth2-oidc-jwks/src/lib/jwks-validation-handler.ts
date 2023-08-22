@@ -2,7 +2,8 @@ import * as rs from "jsrsasign";
 import {
   AbstractValidationHandler,
   ValidationParams,
-} from "angular-oauth2-oidc";
+} from "libs/angular-oauth2-oidc/projects/lib/src/public_api";
+import RSAKey = jsrsasign.RSAKey;
 
 /**
  * Validates the signature of an id_token against one
@@ -52,16 +53,17 @@ export class JwksValidationHandler extends AbstractValidationHandler {
 
     let kid: string = params.idTokenHeader["kid"];
     let keys: object[] = params.jwks["keys"];
-    let key: object;
+    let key: any;
 
     let alg = params.idTokenHeader["alg"];
 
     if (kid) {
+      // @ts-ignore
       key = keys.find((k) => k["kid"] === kid /* && k['use'] === 'sig' */);
     } else {
       let kty = this.alg2kty(alg);
       let matchingKeys = keys.filter(
-        (k) => k["kty"] === kty && k["use"] === "sig"
+        (k: any) => k["kty"] === kty && k["use"] === "sig"
       );
 
       /*
@@ -80,6 +82,7 @@ export class JwksValidationHandler extends AbstractValidationHandler {
       }
     }
 
+    // @ts-ignore
     if (!key && !retry && params.loadKeys) {
       return params
         .loadKeys()
@@ -87,12 +90,14 @@ export class JwksValidationHandler extends AbstractValidationHandler {
         .then((_) => this.validateSignature(params, true));
     }
 
+    // @ts-ignore
     if (!key && retry && !kid) {
       let error = "No matching key found.";
       console.error(error);
       return Promise.reject(error);
     }
 
+    // @ts-ignore
     if (!key && retry && kid) {
       let error =
         "expected key not found in property jwks. " +
@@ -110,9 +115,10 @@ export class JwksValidationHandler extends AbstractValidationHandler {
       alg: this.allowedAlgorithms,
       gracePeriod: this.gracePeriodInSec,
     };
+
     let isValid = rs.KJUR.jws.JWS.verifyJWT(
       params.idToken,
-      keyObj,
+      keyObj as RSAKey,
       validationOptions
     );
 

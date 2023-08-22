@@ -1,5 +1,5 @@
 import { authPasswordFlowConfig } from "../auth-password-flow.config";
-import { OAuthService } from "angular-oauth2-oidc";
+import { OAuthService } from "libs/angular-oauth2-oidc/projects/lib/src/public_api";
 import { Component, OnInit } from "@angular/core";
 
 @Component({

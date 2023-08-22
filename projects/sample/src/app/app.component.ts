@@ -1,11 +1,11 @@
 import { noDiscoveryAuthConfig } from "./auth-no-discovery.config";
 import { authConfig } from "./auth.config";
 import { Component } from "@angular/core";
-import { OAuthService, NullValidationHandler } from "angular-oauth2-oidc";
+import { OAuthService, NullValidationHandler } from "libs/angular-oauth2-oidc/projects/lib/src/public_api";
 import { Router } from "@angular/router";
 import { filter } from "rxjs/operators";
 import { authCodeFlowConfig } from "./auth-code-flow.config";
-import { JwksValidationHandler } from "angular-oauth2-oidc-jwks";
+import { JwksValidationHandler } from "libs/angular-oauth2-oidc/projects/angular-oauth2-oidc-jwks/src/public-api";
 import { useHash } from "../flags";
 
 @Component({

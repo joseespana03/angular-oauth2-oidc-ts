@@ -27,7 +27,7 @@ import {
 })
 export class OAuthModule {
   static forRoot(
-    config: OAuthModuleConfig = null,
+    config?: OAuthModuleConfig,
     validationHandlerClass = NullValidationHandler
   ): ModuleWithProviders<OAuthModule> {
     return {

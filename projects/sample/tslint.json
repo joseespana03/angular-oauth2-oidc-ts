@@ -1,5 +1,5 @@
 {
-  "extends": "../../tslint.json",
+  "extends": "../../angular-oauth2-oidc-ts/tslint.json",
   "rules": {
     "directive-selector": [true, "attribute", null, "camelCase"],
     "component-selector": [true, "element", null, "kebab-case"],

@@ -1,8 +1,8 @@
 import { Component } from "@angular/core";
-import { OAuthService } from "angular-oauth2-oidc";
+import { OAuthService } from "libs/angular-oauth2-oidc/projects/lib/src/public_api";
 import { filter } from "rxjs/operators";
 import { authCodeFlowConfig } from "./auth.config";
-import { JwksValidationHandler } from "angular-oauth2-oidc-jwks";
+import { JwksValidationHandler } from "libs/angular-oauth2-oidc/projects/angular-oauth2-oidc-jwks/src/public-api";
 
 @Component({
   selector: "app-root",

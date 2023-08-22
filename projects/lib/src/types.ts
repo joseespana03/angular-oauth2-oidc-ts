@@ -62,7 +62,7 @@ export class LoginOptions {
    * when retrieving the code. This is used internally for silent
    * refresh and popup flows.
    */
-  customRedirectUri?: string;
+  customRedirectUri?: any;
 }
 
 /**

@@ -1,0 +1,27 @@
+{
+  "name": "angular-oauth2-oidc",
+  "license": "MIT",
+  "author": {
+    "name": "Diego Auyon"
+  },
+  "version": "10.2.2",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/diegoauyon/angular-oauth2-oidc.git"
+  },
+  "peerDependencies": {
+    "@angular/common": ">=10.0.4",
+    "@angular/core": ">=10.0.4"
+  },
+  "dependencies": {
+    "tslib": "^2.0.0"
+  },
+  "main": "bundles/angular-oauth2-oidc.umd.js",
+  "module": "fesm2015/angular-oauth2-oidc.js",
+  "es2015": "fesm2015/angular-oauth2-oidc.js",
+  "esm2015": "esm2015/angular-oauth2-oidc.js",
+  "fesm2015": "fesm2015/angular-oauth2-oidc.js",
+  "typings": "angular-oauth2-oidc.d.ts",
+  "metadata": "angular-oauth2-oidc.metadata.json",
+  "sideEffects": false
+}

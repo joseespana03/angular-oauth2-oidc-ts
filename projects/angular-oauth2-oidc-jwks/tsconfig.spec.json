@@ -1,9 +1,11 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../../angular-oauth2-oidc-ts/tsconfig.base.json",
   "compilerOptions": {
     "outDir": "../../out-tsc/spec",
     "types": ["jasmine", "node"]
   },
-  "files": ["src/test.ts"],
+  "files": [
+    "src/test.ts"
+  ],
   "include": ["**/*.spec.ts", "**/*.d.ts"]
 }
