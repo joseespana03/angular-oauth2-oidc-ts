@@ -276,7 +276,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
   public loadDiscoveryDocumentAndTryLogin(
     options: LoginOptions
   ): Promise<boolean> {
-    return this.loadDiscoveryDocument('').then((doc) => {
+    return this.loadDiscoveryDocument("").then((doc) => {
       return this.tryLogin(options);
     });
   }
@@ -500,9 +500,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
    *
    * @param fullUrl
    */
-  public loadDiscoveryDocument(
-    fullUrl: string
-  ): Promise<OAuthSuccessEvent> {
+  public loadDiscoveryDocument(fullUrl: string): Promise<OAuthSuccessEvent> {
     return new Promise((resolve, reject) => {
       if (!fullUrl) {
         fullUrl = this.issuer || "";
@@ -523,7 +521,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
         (doc) => {
           if (!this.validateDiscoveryDocument(doc)) {
             this.eventsSubject.next(
-              new OAuthErrorEvent("discovery_document_validation_error", [],[])
+              new OAuthErrorEvent("discovery_document_validation_error", [], [])
             );
             reject("discovery_document_validation_error");
             return;
@@ -717,7 +715,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     if (!this.hasValidAccessToken()) {
       throw new Error("Can not load User Profile without access_token");
     }
-    if (!this.validateUrlForHttps(this.userinfoEndpoint ?? '')) {
+    if (!this.validateUrlForHttps(this.userinfoEndpoint ?? "")) {
       throw new Error(
         "userinfoEndpoint must use HTTPS (with TLS), or config value for property 'requireHttps' must be set to 'false' and allow HTTP (without TLS)."
       );
@@ -729,41 +727,45 @@ export class OAuthService extends AuthConfig implements OnDestroy {
         "Bearer " + this.getAccessToken()
       );
 
-      this.http.get<UserInfo>(this.userinfoEndpoint ?? '', { headers }).subscribe(
-        (info) => {
-          this.debug("userinfo received", info);
+      this.http
+        .get<UserInfo>(this.userinfoEndpoint ?? "", { headers })
+        .subscribe(
+          (info) => {
+            this.debug("userinfo received", info);
 
-          const existingClaims: any = this.getIdentityClaims() || [];
+            const existingClaims: any = this.getIdentityClaims() || [];
 
-          if (!this.skipSubjectCheck) {
-            if (
-              this.oidc &&
-              (!existingClaims["sub"] || info.sub !== existingClaims["sub"])
-            ) {
-              const err =
-                "if property oidc is true, the received user-id (sub) has to be the user-id " +
-                "of the user that has logged in with oidc.\n" +
-                "if you are not using oidc but just oauth2 password flow set oidc to false";
+            if (!this.skipSubjectCheck) {
+              if (
+                this.oidc &&
+                (!existingClaims["sub"] || info.sub !== existingClaims["sub"])
+              ) {
+                const err =
+                  "if property oidc is true, the received user-id (sub) has to be the user-id " +
+                  "of the user that has logged in with oidc.\n" +
+                  "if you are not using oidc but just oauth2 password flow set oidc to false";
 
-              reject(err);
-              return;
+                reject(err);
+                return;
+              }
             }
+
+            info = Object.assign({}, existingClaims, info);
+
+            this._storage.setItem("id_token_claims_obj", JSON.stringify(info));
+            this.eventsSubject.next(
+              new OAuthSuccessEvent("user_profile_loaded")
+            );
+            resolve(info);
+          },
+          (err) => {
+            this.logger.error("error loading user info", err);
+            this.eventsSubject.next(
+              new OAuthErrorEvent("user_profile_load_error", err, [])
+            );
+            reject(err);
           }
-
-          info = Object.assign({}, existingClaims, info);
-
-          this._storage.setItem("id_token_claims_obj", JSON.stringify(info));
-          this.eventsSubject.next(new OAuthSuccessEvent("user_profile_loaded"));
-          resolve(info);
-        },
-        (err) => {
-          this.logger.error("error loading user info", err);
-          this.eventsSubject.next(
-            new OAuthErrorEvent("user_profile_load_error", err,[])
-          );
-          reject(err);
-        }
-      );
+        );
     });
   }
 
@@ -821,7 +823,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       );
 
       this.http
-        .post<TokenResponse>(this.tokenEndpoint ?? '', params, { headers })
+        .post<TokenResponse>(this.tokenEndpoint ?? "", params, { headers })
         .subscribe(
           (tokenResponse: any) => {
             this.debug("tokenResponse", tokenResponse);
@@ -839,7 +841,9 @@ export class OAuthService extends AuthConfig implements OnDestroy {
           },
           (err) => {
             this.logger.error("Error performing password flow", err);
-            this.eventsSubject.next(new OAuthErrorEvent("token_error", err, []));
+            this.eventsSubject.next(
+              new OAuthErrorEvent("token_error", err, [])
+            );
             reject(err);
           }
         );
@@ -890,7 +894,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       }
 
       this.http
-        .post<TokenResponse>(this.tokenEndpoint ?? '', params, { headers })
+        .post<TokenResponse>(this.tokenEndpoint ?? "", params, { headers })
         .pipe(
           switchMap((tokenResponse) => {
             if (tokenResponse.id_token) {
@@ -972,10 +976,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
    * Use this method to get new tokens when/before
    * the existing tokens expire.
    */
-  public silentRefresh(
-    params: any = {},
-    noPrompt = true
-  ): Promise<OAuthEvent> {
+  public silentRefresh(params: any = {}, noPrompt = true): Promise<OAuthEvent> {
     const claims: object = this.getIdentityClaims() || {};
 
     if (this.useIdTokenHintForSilentRefresh && this.hasValidIdToken()) {
@@ -1057,17 +1058,11 @@ export class OAuthService extends AuthConfig implements OnDestroy {
    * {@link OAuthService#initLoginFlowInPopup} handles both code
    * and implicit flows.
    */
-  public initImplicitFlowInPopup(options: {
-    height?: number;
-    width?: number;
-  }) {
+  public initImplicitFlowInPopup(options: { height?: number; width?: number }) {
     return this.initLoginFlowInPopup(options);
   }
 
-  public initLoginFlowInPopup(options: {
-    height?: number;
-    width?: number;
-  }) {
+  public initLoginFlowInPopup(options: { height?: number; width?: number }) {
     return this.createLoginUrl("", "", this.silentRefreshRedirectUri, false, {
       display: "popup",
     }).then((url) => {
@@ -1085,11 +1080,11 @@ export class OAuthService extends AuthConfig implements OnDestroy {
         const checkForPopupClosed = () => {
           if (!windowRef || windowRef.closed) {
             cleanup();
-            reject(new OAuthErrorEvent("popup_closed", [],[]));
+            reject(new OAuthErrorEvent("popup_closed", [], []));
           }
         };
         if (!windowRef) {
-          reject(new OAuthErrorEvent("popup_blocked", [],[]));
+          reject(new OAuthErrorEvent("popup_blocked", [], []));
         } else {
           checkForPopupClosedTimer = window.setInterval(
             checkForPopupClosed,
@@ -1309,14 +1304,14 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     }
 
     const existingIframe = this.document.getElementById(
-      this.sessionCheckIFrameName ?? ''
+      this.sessionCheckIFrameName ?? ""
     );
     if (existingIframe) {
       this.document.body.removeChild(existingIframe);
     }
 
     const iframe = this.document.createElement("iframe");
-    iframe.id = this.sessionCheckIFrameName ?? '';
+    iframe.id = this.sessionCheckIFrameName ?? "";
 
     this.setupSessionCheckEventListener();
 
@@ -1382,7 +1377,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     if (customRedirectUri) {
       redirectUri = customRedirectUri;
     } else {
-      redirectUri = this.redirectUri ?? '';
+      redirectUri = this.redirectUri ?? "";
     }
 
     const nonce = await this.createAndSaveNonce();
@@ -1422,7 +1417,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       that.loginUrl +
       seperationChar +
       "response_type=" +
-      encodeURIComponent(that.responseType ?? '') +
+      encodeURIComponent(that.responseType ?? "") +
       "&client_id=" +
       encodeURIComponent(that.clientId) +
       "&state=" +
@@ -1467,7 +1462,10 @@ export class OAuthService extends AuthConfig implements OnDestroy {
 
     for (const key of Object.keys(params)) {
       url +=
-        "&" + encodeURIComponent(key) + "=" + encodeURIComponent(params[key] ?? '');
+        "&" +
+        encodeURIComponent(key) +
+        "=" +
+        encodeURIComponent(params[key] ?? "");
     }
 
     if (this.customQueryParams) {
@@ -1497,7 +1495,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     }
 
     let addParams: object = {};
-    let loginHint: string = '';
+    let loginHint: string = "";
 
     if (typeof params === "string") {
       loginHint = params;
@@ -1505,7 +1503,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       addParams = params;
     }
 
-    this.createLoginUrl(additionalState, loginHint, '', false, addParams)
+    this.createLoginUrl(additionalState, loginHint, "", false, addParams)
       .then(this.config.openUri)
       .catch((error) => {
         console.error("Error in initImplicitFlow", error);
@@ -1659,7 +1657,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
 
     const success = this.validateNonce(nonceInState);
     if (!success) {
-      const event = new OAuthErrorEvent("invalid_nonce_in_state", [],[]);
+      const event = new OAuthErrorEvent("invalid_nonce_in_state", [], []);
       this.eventsSubject.next(event);
       return Promise.reject(event);
     }
@@ -1756,15 +1754,15 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       }
 
       this.http
-        .post<TokenResponse>(this.tokenEndpoint ?? '', params, { headers })
+        .post<TokenResponse>(this.tokenEndpoint ?? "", params, { headers })
         .subscribe(
           (tokenResponse) => {
             this.debug("refresh tokenResponse", tokenResponse);
             this.storeAccessTokenResponse(
               tokenResponse.access_token,
               tokenResponse.refresh_token,
-              (tokenResponse.expires_in ?? 0 ) ||
-              ( this.fallbackAccessTokenExpirationTimeInSec ?? 0 ),
+              (tokenResponse.expires_in ?? 0) ||
+                (this.fallbackAccessTokenExpirationTimeInSec ?? 0),
               tokenResponse.scope,
               this.extractRecognizedCustomParameters(tokenResponse)
             );
@@ -1788,7 +1786,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
                 })
                 .catch((reason) => {
                   this.eventsSubject.next(
-                    new OAuthErrorEvent("token_validation_error", reason,[])
+                    new OAuthErrorEvent("token_validation_error", reason, [])
                   );
                   console.error("Error validating tokens");
                   console.error(reason);
@@ -1805,7 +1803,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
           (err) => {
             console.error("Error getting token", err);
             this.eventsSubject.next(
-              new OAuthErrorEvent("token_refresh_error", err,[])
+              new OAuthErrorEvent("token_refresh_error", err, [])
             );
             reject(err);
           }
@@ -1880,7 +1878,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       const success = this.validateNonce(nonceInState);
 
       if (!success) {
-        const event = new OAuthErrorEvent("invalid_nonce_in_state", [],[]);
+        const event = new OAuthErrorEvent("invalid_nonce_in_state", [], []);
         this.eventsSubject.next(event);
         return Promise.reject(event);
       }
@@ -1889,7 +1887,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     if (this.requestAccessToken) {
       this.storeAccessTokenResponse(
         accessToken,
-        '',
+        "",
         parts["expires_in"] || this.fallbackAccessTokenExpirationTimeInSec,
         grantedScopes
       );
@@ -1922,7 +1920,11 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       .then((result) => {
         this.storeIdToken(result);
         this.storeSessionState(sessionState);
-        if (this.clearHashAfterLogin && options && !options.preventClearHashAfterLogin) {
+        if (
+          this.clearHashAfterLogin &&
+          options &&
+          !options.preventClearHashAfterLogin
+        ) {
           location.hash = "";
         }
         this.eventsSubject.next(new OAuthSuccessEvent("token_received"));
@@ -1945,10 +1947,12 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     let userState = "";
 
     if (state) {
-      const idx = state.indexOf(this.config.nonceStateSeparator ?? '');
+      const idx = state.indexOf(this.config.nonceStateSeparator ?? "");
       if (idx > -1) {
         nonce = state.substr(0, idx);
-        userState = state.substr(idx + (this.config.nonceStateSeparator ?? '' ).length);
+        userState = state.substr(
+          idx + (this.config.nonceStateSeparator ?? "").length
+        );
       }
     }
     return [nonce, userState];
@@ -2441,7 +2445,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
 
     this.removeSilentRefreshEventListener();
     const silentRefreshFrame = this.document.getElementById(
-      this.silentRefreshIFrameName ?? ''
+      this.silentRefreshIFrameName ?? ""
     );
     if (silentRefreshFrame) {
       silentRefreshFrame.remove();
@@ -2450,7 +2454,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     this.stopSessionCheckTimer();
     this.removeSessionCheckEventListener();
     const sessionCheckFrame = this.document.getElementById(
-      this.sessionCheckIFrameName ?? ''
+      this.sessionCheckIFrameName ?? ""
     );
     if (sessionCheckFrame) {
       sessionCheckFrame.remove();
@@ -2476,8 +2480,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       let size = 45;
       let id = "";
 
-      const crypto =
-        typeof self === "undefined" ? null : self.crypto;
+      const crypto = typeof self === "undefined" ? null : self.crypto;
       if (crypto) {
         let bytes = new Uint8Array(size);
         crypto.getRandomValues(bytes);
@@ -2553,7 +2556,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       );
     }
 
-    this.createLoginUrl(additionalState, "", '', false, params)
+    this.createLoginUrl(additionalState, "", "", false, params)
       .then(this.config.openUri)
       .catch((error) => {
         console.error("Error in initAuthorizationCodeFlow");
@@ -2648,7 +2651,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
           .set("token", accessToken)
           .set("token_type_hint", "access_token");
         revokeAccessToken = this.http.post<any>(
-          revokeEndpoint ?? '',
+          revokeEndpoint ?? "",
           revokationParams,
           { headers }
         );
@@ -2661,7 +2664,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
           .set("token", refreshToken)
           .set("token_type_hint", "refresh_token");
         revokeRefreshToken = this.http.post<any>(
-          revokeEndpoint ?? '',
+          revokeEndpoint ?? "",
           revokationParams,
           { headers }
         );
@@ -2698,7 +2701,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
         (err) => {
           this.logger.error("Error revoking token", err);
           this.eventsSubject.next(
-            new OAuthErrorEvent("token_revoke_error", err,[])
+            new OAuthErrorEvent("token_revoke_error", err, [])
           );
           reject(err);
         }

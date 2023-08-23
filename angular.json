@@ -10,7 +10,7 @@
       "prefix": "lib",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-ng-packagr:build",
+          "builder": "@angular-devkit/build-angular:ng-packagr:build",
           "options": {
             "tsConfig": "projects/lib/tsconfig.lib.json",
             "project": "projects/lib/ng-package.json"
@@ -250,7 +250,7 @@
       "prefix": "lib",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-ng-packagr:build",
+          "builder": "@angular-devkit/build-angular:ng-packagr:build",
           "options": {
             "tsConfig": "projects/angular-oauth2-oidc-jwks/tsconfig.lib.json",
             "project": "projects/angular-oauth2-oidc-jwks/ng-package.json"
@@ -272,6 +272,39 @@
               "projects/angular-oauth2-oidc-jwks/tsconfig.spec.json"
             ],
             "exclude": ["**/node_modules/**"]
+          }
+        }
+      }
+    },
+    "angular-auth2-oidc-ts": {
+      "projectType": "library",
+      "root": "projects/angular-auth2-oidc-ts",
+      "sourceRoot": "projects/angular-auth2-oidc-ts/src",
+      "prefix": "lib",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "options": {
+            "project": "projects/angular-auth2-oidc-ts/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/angular-auth2-oidc-ts/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/angular-auth2-oidc-ts/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "tsConfig": "projects/angular-auth2-oidc-ts/tsconfig.spec.json",
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ]
           }
         }
       }

@@ -395,7 +395,7 @@ function fillBuffer(
   const num = counter[0];
 
   if (num === 0) {
-    throw new Error('hkdf: cannot expand more');
+    throw new Error("hkdf: cannot expand more");
   }
 
   // Prepare HMAC instance for new data with old key.

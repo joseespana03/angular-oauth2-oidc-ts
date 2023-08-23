@@ -1,7 +1,10 @@
 import { NgModule } from "@angular/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { BrowserModule } from "@angular/platform-browser";
-import { OAuthModule, OAuthStorage } from "libs/angular-oauth2-oidc/projects/lib/src/public_api";
+import {
+  OAuthModule,
+  OAuthStorage,
+} from "libs/angular-oauth2-oidc/projects/lib/src/public_api";
 import { HttpClientModule } from "@angular/common/http";
 
 import { AppComponent } from "./app.component";

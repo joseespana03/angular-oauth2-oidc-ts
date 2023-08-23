@@ -6,7 +6,7 @@
     "release": "standard-version",
     "ng": "ng",
     "start": "ng serve --project sample -o",
-    "build": "npm run prettier && ng build --prod --project lib && npm run copy:readme && npm run copy:license && npm run docs",
+    "build": "npm run prettier && ng build --configuration production --project lib && npm run copy:readme && npm run copy:license && npm run docs",
     "build:jwks": "npm run prettier && ng build angular-oauth2-oidc-jwks --ts-config tsconfig.npm.json",
     "test": "ng test",
     "lint": "ng lint",
@@ -44,12 +44,11 @@
     "rxjs": "~7.8.0",
     "rxjs-compat": "^6.6.7",
     "text-encoder-lite": "^2.0.0",
-    "tsickle": "^0.43.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.13.0"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^16.1.4",
+    "@angular-devkit/build-angular": "^16.2.0",
     "@angular/cli": "16.1.4",
     "@angular/compiler-cli": "16.1.4",
     "@angular/language-service": "16.1.4",
@@ -82,7 +81,7 @@
     "standard-version": "^9.3.1",
     "ts-node": "~10.9.1",
     "tslint": "~6.1.0",
-    "typescript": "~5.1.3"
+    "typescript": "^5.1.6"
   },
   "husky": {
     "hooks": {
