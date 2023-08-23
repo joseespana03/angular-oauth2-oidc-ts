@@ -470,7 +470,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
   protected calcTimeout(storedAt: number, expiration: number): number {
     const now = Date.now();
     const delta =
-      (expiration - storedAt) * this.timeoutFactor - (now - storedAt);
+      (expiration - storedAt) * (this.timeoutFactor ?? 0) - (now - storedAt);
     return Math.max(0, delta);
   }
 
@@ -717,7 +717,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     if (!this.hasValidAccessToken()) {
       throw new Error("Can not load User Profile without access_token");
     }
-    if (!this.validateUrlForHttps(this.userinfoEndpoint)) {
+    if (!this.validateUrlForHttps(this.userinfoEndpoint ?? '')) {
       throw new Error(
         "userinfoEndpoint must use HTTPS (with TLS), or config value for property 'requireHttps' must be set to 'false' and allow HTTP (without TLS)."
       );
@@ -729,7 +729,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
         "Bearer " + this.getAccessToken()
       );
 
-      this.http.get<UserInfo>(this.userinfoEndpoint, { headers }).subscribe(
+      this.http.get<UserInfo>(this.userinfoEndpoint ?? '', { headers }).subscribe(
         (info) => {
           this.debug("userinfo received", info);
 
@@ -821,7 +821,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       );
 
       this.http
-        .post<TokenResponse>(this.tokenEndpoint, params, { headers })
+        .post<TokenResponse>(this.tokenEndpoint ?? '', params, { headers })
         .subscribe(
           (tokenResponse: any) => {
             this.debug("tokenResponse", tokenResponse);
@@ -890,7 +890,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       }
 
       this.http
-        .post<TokenResponse>(this.tokenEndpoint, params, { headers })
+        .post<TokenResponse>(this.tokenEndpoint ?? '', params, { headers })
         .pipe(
           switchMap((tokenResponse) => {
             if (tokenResponse.id_token) {
@@ -1309,14 +1309,14 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     }
 
     const existingIframe = this.document.getElementById(
-      this.sessionCheckIFrameName
+      this.sessionCheckIFrameName ?? ''
     );
     if (existingIframe) {
       this.document.body.removeChild(existingIframe);
     }
 
     const iframe = this.document.createElement("iframe");
-    iframe.id = this.sessionCheckIFrameName;
+    iframe.id = this.sessionCheckIFrameName ?? '';
 
     this.setupSessionCheckEventListener();
 
@@ -1756,15 +1756,15 @@ export class OAuthService extends AuthConfig implements OnDestroy {
       }
 
       this.http
-        .post<TokenResponse>(this.tokenEndpoint, params, { headers })
+        .post<TokenResponse>(this.tokenEndpoint ?? '', params, { headers })
         .subscribe(
           (tokenResponse) => {
             this.debug("refresh tokenResponse", tokenResponse);
             this.storeAccessTokenResponse(
               tokenResponse.access_token,
               tokenResponse.refresh_token,
-              tokenResponse.expires_in ||
-                this.fallbackAccessTokenExpirationTimeInSec,
+              (tokenResponse.expires_in ?? 0 ) ||
+              ( this.fallbackAccessTokenExpirationTimeInSec ?? 0 ),
               tokenResponse.scope,
               this.extractRecognizedCustomParameters(tokenResponse)
             );
@@ -1945,10 +1945,10 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     let userState = "";
 
     if (state) {
-      const idx = state.indexOf(this.config.nonceStateSeparator);
+      const idx = state.indexOf(this.config.nonceStateSeparator ?? '');
       if (idx > -1) {
         nonce = state.substr(0, idx);
-        userState = state.substr(idx + this.config.nonceStateSeparator.length);
+        userState = state.substr(idx + (this.config.nonceStateSeparator ?? '' ).length);
       }
     }
     return [nonce, userState];
@@ -2441,7 +2441,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
 
     this.removeSilentRefreshEventListener();
     const silentRefreshFrame = this.document.getElementById(
-      this.silentRefreshIFrameName
+      this.silentRefreshIFrameName ?? ''
     );
     if (silentRefreshFrame) {
       silentRefreshFrame.remove();
@@ -2450,7 +2450,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
     this.stopSessionCheckTimer();
     this.removeSessionCheckEventListener();
     const sessionCheckFrame = this.document.getElementById(
-      this.sessionCheckIFrameName
+      this.sessionCheckIFrameName ?? ''
     );
     if (sessionCheckFrame) {
       sessionCheckFrame.remove();
@@ -2648,7 +2648,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
           .set("token", accessToken)
           .set("token_type_hint", "access_token");
         revokeAccessToken = this.http.post<any>(
-          revokeEndpoint,
+          revokeEndpoint ?? '',
           revokationParams,
           { headers }
         );
@@ -2661,7 +2661,7 @@ export class OAuthService extends AuthConfig implements OnDestroy {
           .set("token", refreshToken)
           .set("token_type_hint", "refresh_token");
         revokeRefreshToken = this.http.post<any>(
-          revokeEndpoint,
+          revokeEndpoint ?? '',
           revokationParams,
           { headers }
         );

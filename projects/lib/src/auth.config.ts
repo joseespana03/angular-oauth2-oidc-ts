@@ -62,12 +62,12 @@ export class AuthConfig {
   /**
    * Url of the token endpoint as defined by OpenId Connect and OAuth 2.
    */
-  public tokenEndpoint!: string;
+  public tokenEndpoint?: string;
 
   /**
    * Url of the revocation endpoint as defined by OpenId Connect and OAuth 2.
    */
-  public revocationEndpoint!: string;
+  public revocationEndpoint?: string;
 
   /**
    * Names of known parameters sent out in the TokenResponse. https://tools.ietf.org/html/rfc6749#section-5.1
@@ -77,7 +77,7 @@ export class AuthConfig {
   /**
    * Url of the userinfo endpoint as defined by OpenId Connect.
    */
-  public userinfoEndpoint!: string;
+  public userinfoEndpoint?: string;
 
   public responseType?: any = "";
 
@@ -143,23 +143,23 @@ export class AuthConfig {
    * with keys used to validate received id_tokens.
    * This is taken out of the disovery document. Can be set manually too.
    */
-  public jwks?: object;
+  public jwks?: any;
 
   // @ts-ignore
   /**
    * Map with additional query parameter that are appended to
    * the request when initializing implicit flow.
    */
-  public customQueryParams: any;
+  public customQueryParams?: any;
 
-  public silentRefreshIFrameName = "angular-oauth-oidc-silent-refresh-iframe";
+  public silentRefreshIFrameName? = "angular-oauth-oidc-silent-refresh-iframe";
 
   /**
    * Defines when the token_timeout event should be raised.
    * If you set this to the default value 0.75, the event
    * is triggered after 75% of the token's life time.
    */
-  public timeoutFactor: number = 0.75;
+  public timeoutFactor?: number = 0.75;
 
   /**
    * If true, the lib will try to check whether the user
@@ -182,7 +182,7 @@ export class AuthConfig {
   /**
    * Name of the iframe to use for session checks
    */
-  public sessionCheckIFrameName = "angular-oauth-oidc-check-session-iframe";
+  public sessionCheckIFrameName? = "angular-oauth-oidc-check-session-iframe";
 
   /**
    * This property has been introduced to disable at_hash checks
@@ -212,7 +212,7 @@ export class AuthConfig {
    * server exposes the access_token's life time in seconds.
    * This is a fallback value for the case this value is not exposed.
    */
-  public fallbackAccessTokenExpirationTimeInSec: number = 0;
+  public fallbackAccessTokenExpirationTimeInSec?: number = 0;
 
   /**
    * final state sent to issuer is built as follows:
@@ -220,7 +220,7 @@ export class AuthConfig {
    * Default separator is ';' (encoded %3B).
    * In rare cases, this character might be forbidden or inconvenient to use by the issuer so it can be customized.
    */
-  public nonceStateSeparator = ";";
+  public nonceStateSeparator? = ";";
 
   /**
    * Set this to true to use HTTP BASIC auth for AJAX calls
